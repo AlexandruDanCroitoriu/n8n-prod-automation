@@ -1,0 +1,930 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "332c6dc8-15dc-48e4-806a-3695ebba8ba7",
+              "name": "product_title",
+              "value": "product title from N8N no images",
+              "type": "string"
+            },
+            {
+              "id": "30861f38-5396-4a42-886d-2d0d7550a98f",
+              "name": "description_html",
+              "value": "<p>Product description from graphql</p>",
+              "type": "string"
+            },
+            {
+              "id": "de57e996-dfe3-4b19-8c56-1262aa68acbb",
+              "name": "status",
+              "value": "DRAFT",
+              "type": "string"
+            },
+            {
+              "id": "5b863002-c4de-41ff-961b-8f0bbc71b46f",
+              "name": "template_suffix",
+              "value": "pagepilot-Standard-GLOBAL",
+              "type": "string"
+            },
+            {
+              "id": "741bda70-720f-49ce-85fb-b9fe0fd20ae4",
+              "name": "price",
+              "value": "99",
+              "type": "string"
+            },
+            {
+              "id": "7427632a-a08f-4f7c-8f92-15661f9bf0f5",
+              "name": "compare_at_price",
+              "value": "199",
+              "type": "string"
+            },
+            {
+              "id": "e2fa724d-5034-471f-89e6-1ffafba728e2",
+              "name": "media_links",
+              "value": "={{ $json.media_links || [] }}",
+              "type": "array"
+            },
+            {
+              "name": "beneficiu_1",
+              "type": "string",
+              "value": "⚡ Acces instant în colțuri imposibile, fără efort sau frustrări inutile.",
+              "id": "f28f41fa-5d73-480b-a8a0-a95bdcf7b924"
+            },
+            {
+              "name": "beneficiu_2",
+              "type": "string",
+              "value": "⚡ Acces instant în colțuri imposibile, fără efort sau frustrări inutile.",
+              "id": "3940cd64-a01d-48f4-a667-fcdd40946a40"
+            },
+            {
+              "name": "beneficiu_3",
+              "type": "string",
+              "value": "💪 Control total și stabilitate maximă datorită mânerului lateral ergonomic.",
+              "id": "a3bfcb0a-f031-4987-9655-a60af8d918aa"
+            },
+            {
+              "name": "beneficiu_4",
+              "type": "string",
+              "value": "🚀 Universal și versatil, compatibil cu orice mașină de găurit ai deja acasă.",
+              "id": "05524e22-9cf0-4887-9eb3-f7673e659c46"
+            },
+            {
+              "name": "section_1_title",
+              "type": "string",
+              "value": "Adio Spatii Inaccesibile",
+              "id": "75eee4be-d405-49e8-adac-409c5fe00bf6"
+            },
+            {
+              "name": "section_1_description",
+              "type": "string",
+              "value": "Uită de mobila demontată sau de zgârieturi. Ajungi instant în spatele cabinetelor sau între grinzi, rezolvând sarcina rapid.",
+              "id": "495b79e5-5882-4b63-9cd4-6ae1460e93f7"
+            },
+            {
+              "name": "section_2_title",
+              "type": "string",
+              "value": "Eficiență Fără Cheie",
+              "id": "8fec9463-6c9b-4b3b-bab0-90393ccd6ccb"
+            },
+            {
+              "name": "section_2_description",
+              "type": "string",
+              "value": "Mandrina de 10mm îți permite să schimbi accesoriile manual. Câștigi timp prețios și elimini stresul căutării cheii de mandrină.",
+              "id": "a13d0b20-dc92-445a-a3ac-3d6ecf6b485c"
+            },
+            {
+              "name": "section_3_title",
+              "type": "string",
+              "value": "Putere și Stabilitate",
+              "id": "3dfe4aeb-9479-4587-8d66-37c5416958e8"
+            },
+            {
+              "name": "section_3_description",
+              "type": "string",
+              "value": "Sistemul de angrenaje 1:1 și mânerul detașabil îți oferă forța necesară pentru a găuri precis, fără ca unealta să îți alunece din mână.",
+              "id": "a497f4cd-c95b-48db-be9d-c696a70ffad6"
+            },
+            {
+              "name": "rev_5_name",
+              "type": "string",
+              "value": "Simona P.",
+              "id": "2b7d8a96-7d15-46b5-b570-ba06c98dbe21"
+            },
+            {
+              "name": "rev_1_text",
+              "type": "string",
+              "value": "Genial pentru spații înguste! Am montat rafturile în 5 minute, recomand.",
+              "id": "7705c69f-b52c-414f-a7f6-7fc45bdd9554"
+            },
+            {
+              "name": "rev_1_name",
+              "type": "string",
+              "value": "Andrei V.",
+              "id": "96bcab4b-816c-4d60-8ed0-d9cd749575cf"
+            },
+            {
+              "name": "rev_2_text",
+              "type": "string",
+              "value": "Foarte robust și ușor de folosit. M-a salvat de multă muncă inutilă.",
+              "id": "bd6823c0-98eb-4042-a768-a901b7c5742d"
+            },
+            {
+              "name": "rev_2_name",
+              "type": "string",
+              "value": "Elena M.",
+              "id": "1576eca8-a77f-4867-85f8-191a48cb5a46"
+            },
+            {
+              "name": "rev_3_text",
+              "type": "string",
+              "value": "Calitate surprinzătoare. Se potrivește perfect pe bormașina mea veche, este foarte util.",
+              "id": "4582a73b-1f9c-4e53-a2a0-75e10aae2504"
+            },
+            {
+              "name": "rev_3_name",
+              "type": "string",
+              "value": "Marius D.",
+              "id": "bd2865c3-c6d9-47bd-8c8b-7fdb6438a52a"
+            },
+            {
+              "name": "rev_4_text",
+              "type": "string",
+              "value": "O soluție rapidă și eficientă. Nu ar trebui să lipsească din nicio trusă.",
+              "id": "1ecebf64-691d-4df9-86ac-1b645aaf0dd8"
+            },
+            {
+              "name": "rev_4_name",
+              "type": "string",
+              "value": "Cristian N.",
+              "id": "0d002571-1204-48bb-90f8-f1a22033b4ac"
+            },
+            {
+              "name": "rev_5_text",
+              "type": "string",
+              "value": "Ușor, dar puternic. Ajunge exact acolo unde nicio altă unealtă nu poate.",
+              "id": "96c921f6-8862-420f-865c-19975235d924"
+            },
+            {
+              "name": "faq_1_q",
+              "type": "string",
+              "value": "Î: Se potrivește acest adaptor cu bormașina mea cu acumulator?",
+              "id": "e53de248-eec7-4468-bfdd-a9d81aa458d6"
+            },
+            {
+              "name": "faq_1_a",
+              "type": "string",
+              "value": "R: Da, tija rotundă de 9.5mm este universală și se fixează perfect în orice mandrină standard de 3/8\", indiferent dacă unealta este cu fir sau acumulator.",
+              "id": "888a9487-e5c5-4b3e-8b8b-a7199d6fb95a"
+            },
+            {
+              "name": "faq_2_q",
+              "type": "string",
+              "value": "Î: Ce dimensiuni de burghie pot folosi cu acest dispozitiv?",
+              "id": "ca9c1162-0e19-4504-9612-bfce5070f85b"
+            },
+            {
+              "name": "faq_2_a",
+              "type": "string",
+              "value": "R: Mandrina keyless de înaltă calitate acceptă o gamă largă de accesorii, având o capacitate de deschidere între 0.8mm și 10mm.",
+              "id": "0c8b8d65-b628-44f4-8688-a778272b30d4"
+            },
+            {
+              "name": "faq_3_q",
+              "type": "string",
+              "value": "Î: Este rezistent pentru sarcini mai dificile în metal sau lemn dur?",
+              "id": "096f4bc5-d351-4530-aa1d-829bb7d95dcf"
+            },
+            {
+              "name": "faq_3_a",
+              "type": "string",
+              "value": "R: Adaptorul suportă un cuplu de 20-25 N·m și are angrenaje din oțel vanadiu, fiind ideal pentru lemn, plastic și reparații auto la viteze sub 500 RPM.",
+              "id": "732bd9f1-20c8-4f08-a7a6-49950f5e4b36"
+            },
+            {
+              "name": "faq_4_q",
+              "type": "string",
+              "value": "Î: Pot muta mânerul pe ambele părți ale adaptorului?",
+              "id": "e448c203-5ad4-4d8d-a404-b9e00bcd147b"
+            },
+            {
+              "name": "faq_4_a",
+              "type": "string",
+              "value": "R: Desigur! Mânerul este detașabil și poate fi înșurubat pe oricare dintre cele două părți ale corpului roșu din ABS, pentru un confort personalizat.",
+              "id": "d9b18a70-4378-4f1c-9e0e-7b449460ba7a"
+            },
+            {
+              "name": "rev_5_img",
+              "type": "string",
+              "value": "gid://shopify/MediaImage/37873242177792",
+              "id": "7577812b-a09e-4269-95d6-0d9b853f959c"
+            },
+            {
+              "name": "rev_4_img",
+              "type": "string",
+              "value": "gid://shopify/MediaImage/37873242177792",
+              "id": "8c3aa4b4-72f5-4fb4-9fb1-08fa5b23b5c8"
+            },
+            {
+              "name": "rev_3_img",
+              "type": "string",
+              "value": "gid://shopify/MediaImage/37873242177792",
+              "id": "c06b311e-c6df-428a-806b-42f68d20dab0"
+            },
+            {
+              "name": "rev_2_img",
+              "type": "string",
+              "value": "gid://shopify/MediaImage/37873242177792",
+              "id": "1a19a408-c8bd-4ca2-9712-66df3b2fdf9f"
+            },
+            {
+              "name": "rev_1_img",
+              "type": "string",
+              "value": "gid://shopify/MediaImage/37873242177792",
+              "id": "aed8b961-743e-4a1a-a06b-c8658b2c5a8f"
+            },
+            {
+              "name": "section_3_image",
+              "type": "string",
+              "value": "gid://shopify/MediaImage/37873242177792",
+              "id": "7dd0fc03-1dbe-4312-be8c-445d1d2e0d47"
+            },
+            {
+              "name": "section_2_image",
+              "type": "string",
+              "value": "gid://shopify/MediaImage/37873242177792",
+              "id": "393af9a4-dc9a-4c2c-b607-77a8de9ff6c2"
+            },
+            {
+              "name": "section_1_image",
+              "type": "string",
+              "value": "gid://shopify/MediaImage/37873242177792",
+              "id": "dde02eac-00e7-41df-8f4e-1fc4e612bcc3"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        528,
+        768
+      ],
+      "id": "e8d61883-c62d-41fc-8f6a-dad3d6fc0680",
+      "name": "Product FULL DATA - no images"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = items?.[0]?.json ?? {};\n\nfunction getNodeItemJson(nodeName) {\n  try {\n    return $items(nodeName, 0, 0)?.[0]?.json ?? {};\n  } catch (error) {\n    return {};\n  }\n}\n\nconst createProduct = getNodeItemJson(\"Create Product\");\nconst fullDataNoImages = getNodeItemJson(\"Product FULL DATA - no images\");\nconst source = fullDataNoImages?.custom ?? fullDataNoImages;\n\nfunction normalizeProductGid(raw) {\n  if (raw == null || raw === \"\") return null;\n  const value = String(raw).trim();\n  if (value.startsWith(\"gid://shopify/Product/\")) return value;\n  const id = value.includes(\"/\") ? value.split(\"/\").pop() : value;\n  return id ? `gid://shopify/Product/${id}` : null;\n}\n\nfunction normalizeMediaImageGid(raw) {\n  if (raw == null || raw === \"\") return \"\";\n  const value = String(raw).trim();\n  if (value.startsWith(\"gid://shopify/MediaImage/\")) return value;\n  const id = value.includes(\"/\") ? value.split(\"/\").pop() : value;\n  return id ? `gid://shopify/MediaImage/${id}` : \"\";\n}\n\nconst productId = normalizeProductGid(\n  createProduct?.data?.productCreate?.product?.id ??\n  source?.product_id ??\n  input?.product_id ??\n  input?.data?.productCreate?.product?.id ??\n  null\n);\n\nif (!productId) {\n  throw new Error(\"Missing product id from Create Product1\");\n}\n\nconst NAMESPACE = \"custom\";\n\nconst firstBatchSchema = [\n  { key: \"beneficiu_1\", type: \"rich_text_field\" },\n  { key: \"beneficiu_2\", type: \"rich_text_field\" },\n  { key: \"beneficiu_3\", type: \"rich_text_field\" },\n  { key: \"beneficiu_4\", type: \"rich_text_field\" },\n  { key: \"section_1_title\", type: \"single_line_text_field\" },\n  { key: \"section_1_description\", type: \"rich_text_field\" },\n  { key: \"section_2_title\", type: \"single_line_text_field\" },\n  { key: \"section_2_description\", type: \"rich_text_field\" },\n  { key: \"section_3_title\", type: \"single_line_text_field\" },\n  { key: \"section_3_description\", type: \"rich_text_field\" },\n  { key: \"rev_1_text\", type: \"rich_text_field\" },\n  { key: \"rev_1_name\", type: \"single_line_text_field\" },\n  { key: \"rev_2_text\", type: \"rich_text_field\" },\n  { key: \"rev_2_name\", type: \"single_line_text_field\" },\n  { key: \"rev_3_text\", type: \"rich_text_field\" },\n  { key: \"rev_3_name\", type: \"single_line_text_field\" },\n  { key: \"rev_4_text\", type: \"rich_text_field\" },\n  { key: \"rev_4_name\", type: \"single_line_text_field\" },\n  { key: \"rev_5_text\", type: \"rich_text_field\" },\n  { key: \"rev_5_name\", type: \"single_line_text_field\" },\n];\n\nconst secondBatchSchema = [\n  { key: \"faq_1_q\", type: \"single_line_text_field\" },\n  { key: \"faq_1_a\", type: \"rich_text_field\" },\n  { key: \"faq_2_q\", type: \"single_line_text_field\" },\n  { key: \"faq_2_a\", type: \"rich_text_field\" },\n  { key: \"faq_3_q\", type: \"single_line_text_field\" },\n  { key: \"faq_3_a\", type: \"rich_text_field\" },\n  { key: \"faq_4_q\", type: \"single_line_text_field\" },\n  { key: \"faq_4_a\", type: \"rich_text_field\" },\n  { key: \"rev_5_img\", type: \"file_reference\" },\n  { key: \"rev_4_img\", type: \"file_reference\" },\n  { key: \"rev_3_img\", type: \"file_reference\" },\n  { key: \"rev_2_img\", type: \"file_reference\" },\n  { key: \"rev_1_img\", type: \"file_reference\" },\n  { key: \"section_3_image\", type: \"file_reference\" },\n  { key: \"section_2_image\", type: \"file_reference\" },\n  { key: \"section_1_image\", type: \"file_reference\" },\n];\n\nfunction toRichTextFieldString(value) {\n  return JSON.stringify({\n    type: \"root\",\n    children: [\n      {\n        type: \"paragraph\",\n        children: [\n          {\n            type: \"text\",\n            value: value == null ? \"\" : String(value),\n          },\n        ],\n      },\n    ],\n  });\n}\n\nconst fallbackImageId = normalizeMediaImageGid(\n  source?.image_id ??\n  fullDataNoImages?.image_id ??\n  input?.image_id ??\n  null\n);\n\nfunction formatValue(type, rawValue) {\n  if (type === \"rich_text_field\") {\n    return toRichTextFieldString(rawValue);\n  }\n\n  if (type === \"single_line_text_field\") {\n    return rawValue == null ? \"\" : String(rawValue);\n  }\n\n  if (type === \"file_reference\") {\n    const candidate = rawValue == null || rawValue === \"\" ? fallbackImageId : rawValue;\n    return normalizeMediaImageGid(candidate);\n  }\n\n  return rawValue == null ? \"\" : String(rawValue);\n}\n\nfunction buildMetafields(schema) {\n  return schema.map(({ key, type }) => ({\n    ownerId: productId,\n    namespace: NAMESPACE,\n    key,\n    type,\n    value: formatValue(type, source[key]),\n  }));\n}\n\nconst firstBatch = {\n  metafields: buildMetafields(firstBatchSchema),\n};\n\nconst secondBatch = {\n  metafields: buildMetafields(secondBatchSchema),\n};\n\nconst firstBatchString = JSON.stringify(firstBatch);\nconst secondBatchString = JSON.stringify(secondBatch);\n\nreturn [\n  { json: { variables: firstBatchString } },\n  { json: { variables: secondBatchString } },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        768
+      ],
+      "id": "7973717b-0058-465d-b051-e5cc5d211c85",
+      "name": "Prepare Metafield batch update"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "mutation",
+        "graphqlMutation": "mutation UpdateProductMetafield($metafields: [MetafieldsSetInput!]!) {\n  metafieldsSet(metafields: $metafields) {\n    metafields {\n      id\n      key\n      value\n    }\n    userErrors {\n      field\n      message\n    }\n  }\n}",
+        "graphqlMutationVariables": "={{ $json.variables }}"
+      },
+      "type": "n8n-nodes-shopify-graphql.shopifyGraphql",
+      "typeVersion": 1,
+      "position": [
+        1312,
+        768
+      ],
+      "id": "936131fa-9c04-42b6-ae77-82859c7beaeb",
+      "name": "Set Metafields",
+      "credentials": {
+        "shopifyOAuth2Api": {
+          "id": "MQCNOuZx8pVyyqhd",
+          "name": "Shopify account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e2fa724d-5034-471f-89e6-1ffafba728e2",
+              "name": "media_links",
+              "value": "={{ ['https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg',] }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        336,
+        768
+      ],
+      "id": "4667700c-7f97-4ee9-b5cd-296b0b5a15e0",
+      "name": "Images"
+    },
+    {
+      "parameters": {
+        "content": "# Shopify product upload",
+        "height": 304,
+        "width": 1520,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        240,
+        656
+      ],
+      "typeVersion": 1,
+      "id": "4ad67469-6a14-4e47-89d8-07f443ed4a80",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const productPatterns = [\n  /amazon\\.[a-z.]+\\/.*\\/dp\\//i,\n  /aliexpress\\.com\\/(item|i)\\//i,\n  /ebay\\.[a-z.]+\\/itm\\//i,\n  /walmart\\.[a-z.]+\\/ip\\//i,\n  /wayfair\\.com\\/.*\\/pdp\\//i,\n];\n\n// Optional: block obvious non-product pages\nconst excludePatterns = [\n  /showroom/i,\n  /category/i,\n  /search/i,\n];\n\nreturn items.filter(item => {\n  const url = item.json.link;\n\n  if (!url) return false;\n\n  const isProduct = productPatterns.some(regex => regex.test(url));\n  const isExcluded = excludePatterns.some(regex => regex.test(url));\n\n  return isProduct && !isExcluded;\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        336,
+        448
+      ],
+      "id": "3c22025e-fb1c-4c4d-bec7-a5c6ab72c96c",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://google.serper.dev/lens",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-KEY",
+              "value": "={{ $('Search Initial data').item.json['X-API-KEY'] }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"url\": \"{{ $('Search Initial data').item.json.URL }}\",\n  \"num\": 50\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        336,
+        208
+      ],
+      "id": "9f81059e-0149-4b90-9be9-36ed3e9af53f",
+      "name": "Serper search"
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().flatMap((item) =>\n  (item.json.organic || []).map((result) => ({\n    json: {\n      title: result.title || '',\n      source: result.source || '',\n      link: result.link || '',\n      imageUrl: result.imageUrl || result.thumbnailUrl || '',\n    },\n  }))\n);"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        528,
+        208
+      ],
+      "id": "638b5010-b311-4ed7-bc27-c8441490e6eb",
+      "name": "format results"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Create New Sheet').item.json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Create New Sheet').item.json.sheets[0].properties.sheetId }}",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "title": "={{ $json.title }}",
+            "source": "={{ $json.source }}",
+            "link": "={{ $json.link }}",
+            "imageUrl": "={{ '=IMAGE(\"' + ($json.imageUrl || '') + '\",4,100,100)' }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "imageUrl",
+              "displayName": "imageUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "link",
+              "displayName": "link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1552,
+        208
+      ],
+      "id": "41148d43-e933-4539-b33c-64fa668e2dbb",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "euNHfDMNweo6OWev",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "={{ $('Search Initial data').item.json.product_name }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1bpH60V-O6qEgUeIYkayeqAB8rLhpkHF4",
+          "mode": "list",
+          "cachedResultName": "alin-products",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1bpH60V-O6qEgUeIYkayeqAB8rLhpkHF4"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        720,
+        -16
+      ],
+      "id": "77307296-dcb5-4ba2-9c59-4bbcc55fbc69",
+      "name": "Create folder",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "eeSOW0vgTVppMvdM",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "spreadsheet",
+        "title": "={{ $json.product_name }}",
+        "sheetsUi": {
+          "sheetValues": [
+            {
+              "title": "product urls"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "08d34347-086b-4754-b3bb-7bd6afedf356",
+      "name": "Create New Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        528,
+        -16
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "euNHfDMNweo6OWev",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Create New Sheet').item.json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Create New Sheet').item.json.sheets[0].properties.sheetId }}"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1344,
+        -16
+      ],
+      "id": "0e03ca7c-b433-43e2-b306-db51d51f5b28",
+      "name": "Create Columns",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "euNHfDMNweo6OWev",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "move",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Create New Sheet').item.json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        928,
+        -16
+      ],
+      "id": "5c3a7f41-4c50-4e2c-a6ae-443637e10c51",
+      "name": "Move Sheet file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "eeSOW0vgTVppMvdM",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      imageUrl: \"\",\n      title: \"\",\n      source: \"\",\n      link: \"\"\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1136,
+        -16
+      ],
+      "id": "af5ffa0d-46cc-4179-be4b-8f1d59c25ddc",
+      "name": "Sheet headers"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Create New Sheet').item.json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Create New Sheet').item.json.sheets[0].properties.sheetId }}",
+          "mode": "id"
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1552,
+        -16
+      ],
+      "id": "4e545dc4-1911-4d7b-9c4f-4de0fddcd68b",
+      "name": "clean first row after column",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "euNHfDMNweo6OWev",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# Product pages process\n",
+        "height": 704,
+        "width": 1536,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        240,
+        -112
+      ],
+      "typeVersion": 1,
+      "id": "277848a5-0702-4776-a294-ab05e5ae819d",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "mutation",
+        "graphqlMutation": "mutation UpdateVariantPricing($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {\n  productVariantsBulkUpdate(productId: $productId, variants: $variants) {\n    productVariants {\n      id\n      price\n      compareAtPrice\n    }\n    userErrors {\n      field\n      message\n    }\n  }\n}",
+        "graphqlMutationVariables": "={\n  \"productId\": \"{{ $json.data.productCreate.product.id }}\",\n  \"variants\": [\n    {\n      \"id\": \"{{ $json.data.productCreate.product.variants.nodes[0].id }}\",\n      \"price\": \"{{ $('Product FULL DATA - no images').item.json.price }}\",\n      \"compareAtPrice\": \"{{ $('Product FULL DATA - no images').item.json.compare_at_price }}\"\n    }\n  ]\n}"
+      },
+      "type": "n8n-nodes-shopify-graphql.shopifyGraphql",
+      "typeVersion": 1,
+      "position": [
+        928,
+        768
+      ],
+      "id": "8321129a-1053-4fbe-911c-0dffe97da4ee",
+      "name": "set price and compare at price",
+      "credentials": {
+        "shopifyOAuth2Api": {
+          "id": "MQCNOuZx8pVyyqhd",
+          "name": "Shopify account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "### n8n-product-automation \n- N8N Server: [Open Workflow](https://vmi2154303.contaboserver.net/workflow/jojIii58JwGUJMJj)  \n- Contabo VPS: [Manage Servers](https://new.contabo.com/servers/vps)\n\n### Shopify Store\n- Admin Panel: [Open Admin](https://admin.shopify.com/store/vue-tailwind-theme-skeleton/)  \n- Storefront: [View Store](https://vue-tailwind-theme-skeleton.myshopify.com)  \n- Dev Dashboard: [Open Dev Apps](https://dev.shopify.com/dashboard/131116785/apps)\n\n#### GraphQL Tools\n- Shopify GraphiQL: [Open GraphiQL](https://shopify-graphiql-app.shopifycloud.com/login)\n\n### AI API Keys\n- DeepSeek Usage: [View Dashboard](https://platform.deepseek.com/usage)\n\n### Search API Keys\n- Serper Dashboard: [Open Serper](https://serper.dev/dashboard)\n\n### Extra\n- n8n Shopify GraphQL Plugin: [View on npm](https://www.npmjs.com/package/n8n-nodes-shopify-graphql)\n\n\n# Tasks\n - [ ] url validation using content extraction and analisys methods (title,description,mediaURLs,... other product specific data). With all the extracted data, create a score and if the url passes a certain score, it will pass as a product page.\n - [ ] product image validation using ai models to see if the product from the first image is present and an exact match in the seccond image.",
+        "height": 1072,
+        "width": 592
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -432,
+        -112
+      ],
+      "typeVersion": 1,
+      "id": "b630f10f-8fb7-4b3e-ac18-ea4b2c81353f",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "779732ef-b8ee-44cf-89eb-098c72b809e7",
+              "name": "X-API-KEY",
+              "value": "54d1cc599991ef63a26e42547fbba25ecebe24fa",
+              "type": "string"
+            },
+            {
+              "id": "398028c4-62ee-4668-b7a7-7a3ed8a63bab",
+              "name": "URL",
+              "value": "=https://s13emagst.akamaized.net/products/114248/114247192/images/res_a8501836cf8072411906c36e707e26c9.png",
+              "type": "string"
+            },
+            {
+              "id": "79d49d21-5986-49de-bfdd-d64251eb9107",
+              "name": "product_name",
+              "value": "=test product",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        336,
+        -16
+      ],
+      "id": "eb523d5e-aac1-410e-8fc5-f1b9b63692b5",
+      "name": "Search Initial data"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "mutation",
+        "graphqlMutation": "mutation CreateProductWithMedia($product: ProductCreateInput!, $media: [CreateMediaInput!]) {\n  productCreate(product: $product, media: $media) {\n    product {\n      id\n      title\n      descriptionHtml\n      status\n      templateSuffix\n      variants(first: 1) {\n        nodes {\n          id\n          price\n          compareAtPrice\n        }\n      }\n      media(first: 30) {\n        nodes {\n          id\n          alt\n          mediaContentType\n        }\n      }\n    }\n    userErrors {\n      field\n      message\n    }\n  }\n}",
+        "graphqlMutationVariables": "={\n  \"product\": {\n    \"title\": \"{{ $json.product_title }}\",\n    \"descriptionHtml\": \"{{ $json.description_html }}\",\n    \"status\": \"{{ $json.status }}\",\n    \"templateSuffix\": \"{{ $json.template_suffix }}\"\n  },\n\n \"media\":\n  {{ JSON.stringify(\n    $json.media_links.map(url => ({\n      originalSource: url,\n      alt: 'product image',\n      mediaContentType: 'IMAGE'\n    })),\n    null,\n    2\n  ) }}\n} "
+      },
+      "type": "n8n-nodes-shopify-graphql.shopifyGraphql",
+      "typeVersion": 1,
+      "position": [
+        736,
+        768
+      ],
+      "id": "055cd16f-e61d-4efd-a3a3-858588c6c6da",
+      "name": "Create Product",
+      "credentials": {
+        "shopifyOAuth2Api": {
+          "id": "MQCNOuZx8pVyyqhd",
+          "name": "Shopify account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Product FULL DATA - no images": {
+      "main": [
+        [
+          {
+            "node": "Create Product",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Metafield batch update": {
+      "main": [
+        [
+          {
+            "node": "Set Metafields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Serper search": {
+      "main": [
+        [
+          {
+            "node": "format results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "format results": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create folder": {
+      "main": [
+        [
+          {
+            "node": "Move Sheet file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create New Sheet": {
+      "main": [
+        [
+          {
+            "node": "Create folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Columns": {
+      "main": [
+        [
+          {
+            "node": "clean first row after column",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Move Sheet file": {
+      "main": [
+        [
+          {
+            "node": "Sheet headers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sheet headers": {
+      "main": [
+        [
+          {
+            "node": "Create Columns",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "clean first row after column": {
+      "main": [
+        [
+          {
+            "node": "Serper search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "set price and compare at price": {
+      "main": [
+        [
+          {
+            "node": "Prepare Metafield batch update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Initial data": {
+      "main": [
+        [
+          {
+            "node": "Create New Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Product": {
+      "main": [
+        [
+          {
+            "node": "set price and compare at price",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "da67fcc8dfca03d3261c9584dfafe4aa8618da738cab6aff809cab91ce61c81f"
+  }
+}
