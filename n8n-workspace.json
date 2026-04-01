@@ -701,7 +701,7 @@
     },
     {
       "parameters": {
-        "content": "### n8n-product-automation \n- N8N Server: [Open Workflow](https://vmi2154303.contaboserver.net/workflow/jojIii58JwGUJMJj)  \n- Contabo VPS: [Manage Servers](https://new.contabo.com/servers/vps)\n\n### Shopify Store\n- Admin Panel: [Open Admin](https://admin.shopify.com/store/vue-tailwind-theme-skeleton/)  \n- Storefront: [View Store](https://vue-tailwind-theme-skeleton.myshopify.com)  \n- Dev Dashboard: [Open Dev Apps](https://dev.shopify.com/dashboard/131116785/apps)\n\n#### GraphQL Tools\n- Shopify GraphiQL: [Open GraphiQL](https://shopify-graphiql-app.shopifycloud.com/login)\n\n### AI API Keys\n- DeepSeek Usage: [View Dashboard](https://platform.deepseek.com/usage)\n\n### Search API Keys\n- Serper Dashboard: [Open Serper](https://serper.dev/dashboard)\n\n### Extra\n- n8n Shopify GraphQL Plugin: [View on npm](https://www.npmjs.com/package/n8n-nodes-shopify-graphql)\n\n\n# Tasks\n - [ ] url validation using content extraction and analisys methods (title,description,mediaURLs,... other product specific data). With all the extracted data, create a score and if the url passes a certain score, it will pass as a product page.\n - [ ] product image validation using ai models to see if the product from the first image is present and an exact match in the seccond image.",
+        "content": "### n8n-product-automation \n- N8N Server: [Open Workflow](https://vmi2154303.contaboserver.net/workflow/jojIii58JwGUJMJj)  \n- Contabo VPS: [Manage Servers](https://new.contabo.com/servers/vps)\n\n### Shopify Store\n- Admin Panel: [Open Admin](https://admin.shopify.com/store/vue-tailwind-theme-skeleton/)  \n- Storefront: [View Store](https://vue-tailwind-theme-skeleton.myshopify.com)  \n- Dev Dashboard: [Open Dev Apps](https://dev.shopify.com/dashboard/131116785/apps)\n\n#### GraphQL Tools\n- Shopify GraphiQL: [Open GraphiQL](https://shopify-graphiql-app.shopifycloud.com/login)\n\n### AI API Keys\n- DeepSeek Usage: [View Dashboard](https://platform.deepseek.com/usage)\n- OpenAi Usage: [OpenAi Dashboard](https://platform.openai.com/usage) \n\n### Search API Keys\n- Serper Dashboard: [Open Serper](https://serper.dev/dashboard)\n\n### Extra\n- n8n Shopify GraphQL Plugin: [View on npm](https://www.npmjs.com/package/n8n-nodes-shopify-graphql)\n\n \n# Tasks\n - [ ] url validation using content extraction and analisys methods (title,description,mediaURLs,... other product specific data). With all the extracted data, create a score and if the url passes a certain score, it will pass as a product page.\n\n\n - [ ] product image validation using ai models to see if the product from the first image is present and an exact match in the seccond image.\nGPT-\n\n",
         "height": 1072,
         "width": 592
       },
@@ -774,7 +774,7 @@
     {
       "parameters": {
         "mode": "raw",
-        "jsonOutput": "={\n  \"product_title\": \"product title from N8N no images\",\n  \"description_html\": \"<p>Product description from graphql</p>\",\n  \"status\": \"DRAFT\",\n  \"template_suffix\": \"pagepilot-Standard-GLOBAL\",\n  \"price\": \"99\",\n  \"compare_at_price\": \"199\",\n  \"media_links\": {{ $json.media_links || [] }},\n  \"beneficiu_1\": \"⚡ Acces instant în colțuri imposibile, fără efort sau frustrări inutile.\",\n  \"beneficiu_2\": \"⚡ Acces instant în colțuri imposibile, fără efort sau frustrări inutile.\",\n  \"beneficiu_3\": \"💪 Control total și stabilitate maximă datorită mânerului lateral ergonomic.\",\n  \"beneficiu_4\": \"🚀 Universal și versatil, compatibil cu orice mașină de găurit ai deja acasă.\",\n  \"section_1_title\": \"Adio Spatii Inaccesibile\",\n  \"section_1_description\": \"Uită de mobila demontată sau de zgârieturi. Ajungi instant în spatele cabinetelor sau între grinzi, rezolvând sarcina rapid.\",\n  \"section_2_title\": \"Eficiență Fără Cheie\",\n  \"section_2_description\": \"Mandrina de 10mm îți permite să schimbi accesoriile manual. Câștigi timp prețios și elimini stresul căutării cheii de mandrină.\",\n  \"section_3_title\": \"Putere și Stabilitate\",\n  \"section_3_description\": \"Sistemul de angrenaje 1:1 și mânerul detașabil îți oferă forța necesară pentru a găuri precis, fără ca unealta să îți alunece din mână.\",\n  \"rev_1_text\": \"Genial pentru spații înguste! Am montat rafturile în 5 minute, recomand.\",\n  \"rev_1_name\": \"Andrei V.\",\n  \"rev_2_text\": \"Foarte robust și ușor de folosit. M-a salvat de multă muncă inutilă.\",\n  \"rev_2_name\": \"Elena M.\",\n  \"rev_3_text\": \"Calitate surprinzătoare. Se potrivește perfect pe bormașina mea veche, este foarte util.\",\n  \"rev_3_name\": \"Marius D.\",\n  \"rev_4_text\": \"O soluție rapidă și eficientă. Nu ar trebui să lipsească din nicio trusă.\",\n  \"rev_4_name\": \"Cristian N.\",\n  \"rev_5_text\": \"Ușor, dar puternic. Ajunge exact acolo unde nicio altă unealtă nu poate.\",\n  \"rev_5_name\": \"Simona P.\",\n  \"faq_1_q\": \"Î: Se potrivește acest adaptor cu bormașina mea cu acumulator?\",\n  \"faq_1_a\": \"R: Da, tija rotundă de 9.5mm este universală și se fixează perfect în orice mandrină standard de 3/8\\\", indiferent dacă unealta este cu fir sau acumulator.\",\n  \"faq_2_q\": \"Î: Ce dimensiuni de burghie pot folosi cu acest dispozitiv?\",\n  \"faq_2_a\": \"R: Mandrina keyless de înaltă calitate acceptă o gamă largă de accesorii, având o capacitate de deschidere între 0.8mm și 10mm.\",\n  \"faq_3_q\": \"Î: Este rezistent pentru sarcini mai dificile în metal sau lemn dur?\",\n  \"faq_3_a\": \"R: Adaptorul suportă un cuplu de 20-25 N·m și are angrenaje din oțel vanadiu, fiind ideal pentru lemn, plastic și reparații auto la viteze sub 500 RPM.\",\n  \"faq_4_q\": \"Î: Pot muta mânerul pe ambele părți ale adaptorului?\",\n  \"faq_4_a\": \"R: Desigur! Mânerul este detașabil și poate fi înșurubat pe oricare dintre cele două părți ale corpului roșu din ABS, pentru un confort personalizat.\",\n  \"rev_1_img\": \"gid://shopify/MediaImage/37873242177792\",\n  \"rev_2_img\": \"gid://shopify/MediaImage/37873242177792\",\n  \"rev_3_img\": \"gid://shopify/MediaImage/37873242177792\",\n  \"rev_4_img\": \"gid://shopify/MediaImage/37873242177792\",\n  \"rev_5_img\": \"gid://shopify/MediaImage/37873242177792\",\n  \"section_1_image\": \"gid://shopify/MediaImage/37873242177792\",\n  \"section_2_image\": \"gid://shopify/MediaImage/37873242177792\",\n  \"section_3_image\": \"gid://shopify/MediaImage/37873242177792\"\n}\n",
+        "jsonOutput": "={\n  \"product_title\": \"alin showoff\",\n  \"description_html\": \"<p>Product description from graphql</p>\",\n  \"status\": \"DRAFT\",\n  \"template_suffix\": \"pagepilot-Standard-GLOBAL\",\n  \"price\": \"99\",\n  \"compare_at_price\": \"199\",\n  \"media_links\": {{ $json.media_links || [] }},\n  \"beneficiu_1\": \"⚡ Acces instant în colțuri imposibile, fără efort sau frustrări inutile.\",\n  \"beneficiu_2\": \"⚡ Acces instant în colțuri imposibile, fără efort sau frustrări inutile.\",\n  \"beneficiu_3\": \"💪 Control total și stabilitate maximă datorită mânerului lateral ergonomic.\",\n  \"beneficiu_4\": \"🚀 Universal și versatil, compatibil cu orice mașină de găurit ai deja acasă.\",\n  \"section_1_title\": \"Adio Spatii Inaccesibile\",\n  \"section_1_description\": \"Uită de mobila demontată sau de zgârieturi. Ajungi instant în spatele cabinetelor sau între grinzi, rezolvând sarcina rapid.\",\n  \"section_2_title\": \"Eficiență Fără Cheie\",\n  \"section_2_description\": \"Mandrina de 10mm îți permite să schimbi accesoriile manual. Câștigi timp prețios și elimini stresul căutării cheii de mandrină.\",\n  \"section_3_title\": \"Putere și Stabilitate\",\n  \"section_3_description\": \"Sistemul de angrenaje 1:1 și mânerul detașabil îți oferă forța necesară pentru a găuri precis, fără ca unealta să îți alunece din mână.\",\n  \"rev_1_text\": \"Genial pentru spații înguste! Am montat rafturile în 5 minute, recomand.\",\n  \"rev_1_name\": \"Andrei V.\",\n  \"rev_2_text\": \"Foarte robust și ușor de folosit. M-a salvat de multă muncă inutilă.\",\n  \"rev_2_name\": \"Elena M.\",\n  \"rev_3_text\": \"Calitate surprinzătoare. Se potrivește perfect pe bormașina mea veche, este foarte util.\",\n  \"rev_3_name\": \"Marius D.\",\n  \"rev_4_text\": \"O soluție rapidă și eficientă. Nu ar trebui să lipsească din nicio trusă.\",\n  \"rev_4_name\": \"Cristian N.\",\n  \"rev_5_text\": \"Ușor, dar puternic. Ajunge exact acolo unde nicio altă unealtă nu poate.\",\n  \"rev_5_name\": \"Simona P.\",\n  \"faq_1_q\": \"Î: Se potrivește acest adaptor cu bormașina mea cu acumulator?\",\n  \"faq_1_a\": \"R: Da, tija rotundă de 9.5mm este universală și se fixează perfect în orice mandrină standard de 3/8\\\", indiferent dacă unealta este cu fir sau acumulator.\",\n  \"faq_2_q\": \"Î: Ce dimensiuni de burghie pot folosi cu acest dispozitiv?\",\n  \"faq_2_a\": \"R: Mandrina keyless de înaltă calitate acceptă o gamă largă de accesorii, având o capacitate de deschidere între 0.8mm și 10mm.\",\n  \"faq_3_q\": \"Î: Este rezistent pentru sarcini mai dificile în metal sau lemn dur?\",\n  \"faq_3_a\": \"R: Adaptorul suportă un cuplu de 20-25 N·m și are angrenaje din oțel vanadiu, fiind ideal pentru lemn, plastic și reparații auto la viteze sub 500 RPM.\",\n  \"faq_4_q\": \"Î: Pot muta mânerul pe ambele părți ale adaptorului?\",\n  \"faq_4_a\": \"R: Desigur! Mânerul este detașabil și poate fi înșurubat pe oricare dintre cele două părți ale corpului roșu din ABS, pentru un confort personalizat.\",\n  \"rev_1_img\": \"gid://shopify/MediaImage/37873242177792\",\n  \"rev_2_img\": \"gid://shopify/MediaImage/37873242177792\",\n  \"rev_3_img\": \"gid://shopify/MediaImage/37873242177792\",\n  \"rev_4_img\": \"gid://shopify/MediaImage/37873242177792\",\n  \"rev_5_img\": \"gid://shopify/MediaImage/37873242177792\",\n  \"section_1_image\": \"gid://shopify/MediaImage/37873242177792\",\n  \"section_2_image\": \"gid://shopify/MediaImage/37873242177792\",\n  \"section_3_image\": \"gid://shopify/MediaImage/37873242177792\"\n}\n",
         "options": {}
       },
       "type": "n8n-nodes-base.set",
@@ -785,6 +785,92 @@
       ],
       "id": "5d5e9b8c-e431-467e-b119-2a44f67397eb",
       "name": "Set Variables JSON"
+    },
+    {
+      "parameters": {
+        "content": "## Validate that the product in the first image is present and exactly the same product in the seccond image\n\nGPT-4o-mini for initial check\nGPT-4o for final check\n",
+        "height": 896,
+        "width": 1328,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1872,
+        -112
+      ],
+      "typeVersion": 1,
+      "id": "d31fe5e3-9d19-433a-a255-320de2903553",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "text": "Compare these two images.\n\nStep 1:\nDetermine if the main product from image 1 is present anywhere in image 2.\n\nStep 2:\nIf it is present, determine if it is EXACTLY the same product (not just similar).\n\nCarefully analyze:\n- shape and structure\n- color and finish\n- number and placement of components (e.g., cameras, buttons, sensors)\n- branding / logos\n- accessories or included parts\n- mounting system / brackets\n- proportions and design details\n\nFor each category, determine whether they match.\n\nRules:\n- Ignore background, lighting, shadows, and camera angle.\n- Ignore image quality differences.\n- If multiple products appear, focus on whether the product from image 1 exists in image 2.\n- If unsure, set values conservatively (false + lower confidence).\n- \"exact_same_product\" can only be true if ALL important visible details match.\n\nReturn ONLY valid JSON with this exact structure:\n\n{\n  \"product_present_in_second_image\": true,\n  \"exact_same_product\": true,\n  \"confidence\": 0.93,\n  \"reasoning\": \"Short explanation\",\n  \"visible_differences\": [\"difference 1\", \"difference 2\"],\n  \"analysis\": {\n    \"same_shape\": true,\n    \"same_color\": true,\n    \"same_components\": true,\n    \"same_branding\": true,\n    \"same_accessories\": true,\n    \"same_mounting\": true,\n    \"same_proportions\": true,\n    \"notes\": \"Short optional note\"\n  }\n}",
+        "imageUrls": "={{ $json.product_image_url }},{{ $json.candidate_product_image_url }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        2432,
+        16
+      ],
+      "id": "69b46073-f47b-4358-9609-668ae07d8e29",
+      "name": "Analyze image",
+      "credentials": {
+        "openAiApi": {
+          "id": "PyG19DHWq0Xtw93X",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "let rawText = \"\";\n\n// Case 1: current item already contains the message object\nif ($json.content?.[0]?.text) {\n  rawText = $json.content[0].text;\n}\n\n// Case 2: your posted structure: [[{...}]]\nelse if (Array.isArray($json) && $json[0]?.[0]?.content?.[0]?.text) {\n  rawText = $json[0][0].content[0].text;\n}\n\n// Case 3: fallback - search deeply for first output_text.text\nelse {\n  const findText = (obj) => {\n    if (!obj) return null;\n\n    if (Array.isArray(obj)) {\n      for (const item of obj) {\n        const found = findText(item);\n        if (found) return found;\n      }\n      return null;\n    }\n\n    if (typeof obj === \"object\") {\n      if (obj.type === \"output_text\" && typeof obj.text === \"string\") {\n        return obj.text;\n      }\n\n      for (const key of Object.keys(obj)) {\n        const found = findText(obj[key]);\n        if (found) return found;\n      }\n    }\n\n    return null;\n  };\n\n  rawText = findText($json) || \"\";\n}\n\nif (!rawText) {\n  throw new Error(\"No output_text found in input\");\n}\n\n// Remove markdown code fences\nconst cleaned = rawText\n  .replace(/^```json\\s*/i, \"\")\n  .replace(/^```\\s*/i, \"\")\n  .replace(/\\s*```$/i, \"\")\n  .trim();\n\nlet parsed;\ntry {\n  parsed = JSON.parse(cleaned);\n} catch (error) {\n  throw new Error(\n    \"Failed to parse JSON. Cleaned text was: \" + cleaned\n  );\n}\n\nreturn [\n  {\n    json: parsed\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2768,
+        16
+      ],
+      "id": "6b0853cf-4e84-46cd-8e4b-323d5030b7c3",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "jsCode": "let rawText = \"\";\n\n// Case 1: current item already contains the message object\nif ($json.content?.[0]?.text) {\n  rawText = $json.content[0].text;\n}\n\n// Case 2: your posted structure: [[{...}]]\nelse if (Array.isArray($json) && $json[0]?.[0]?.content?.[0]?.text) {\n  rawText = $json[0][0].content[0].text;\n}\n\n// Case 3: fallback - search deeply for first output_text.text\nelse {\n  const findText = (obj) => {\n    if (!obj) return null;\n\n    if (Array.isArray(obj)) {\n      for (const item of obj) {\n        const found = findText(item);\n        if (found) return found;\n      }\n      return null;\n    }\n\n    if (typeof obj === \"object\") {\n      if (obj.type === \"output_text\" && typeof obj.text === \"string\") {\n        return obj.text;\n      }\n\n      for (const key of Object.keys(obj)) {\n        const found = findText(obj[key]);\n        if (found) return found;\n      }\n    }\n\n    return null;\n  };\n\n  rawText = findText($json) || \"\";\n}\n\nif (!rawText) {\n  throw new Error(\"No output_text found in input\");\n}\n\n// Remove markdown code fences\nconst cleaned = rawText\n  .replace(/^```json\\s*/i, \"\")\n  .replace(/^```\\s*/i, \"\")\n  .replace(/\\s*```$/i, \"\")\n  .trim();\n\nlet parsed;\ntry {\n  parsed = JSON.parse(cleaned);\n} catch (error) {\n  throw new Error(\n    \"Failed to parse JSON. Cleaned text was: \" + cleaned\n  );\n}\n\nreturn [\n  {\n    json: parsed\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2768,
+        192
+      ],
+      "id": "9ba9ac9e-6524-452c-a0d2-a42d54d5a102",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"product_image_url\": \"https://s13emagst.akamaized.net/products/114248/114247192/images/res_a8501836cf8072411906c36e707e26c9.png\",\n  \"candidate_product_image_url\": \"https://i5.walmartimages.com/asr/87ce337a-c83f-4e43-b7d1-f885c6226e31.d684761737ffa5f9360ccd9f46aaaa95.jpeg?odnHeight=768&odnWidth=768&odnBg=FFFFFF\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2208,
+        16
+      ],
+      "id": "f4c38b1b-7fa6-4dde-8ae1-44a1aedc93c8",
+      "name": "Image URLs"
     }
   ],
   "connections": {
@@ -812,13 +898,7 @@
     },
     "Images": {
       "main": [
-        [
-          {
-            "node": "Set Variables JSON",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     },
     "Serper search": {
@@ -957,9 +1037,56 @@
           }
         ]
       ]
+    },
+    "Analyze image": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image URLs": {
+      "main": [
+        [
+          {
+            "node": "Analyze image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "pinData": {},
+  "pinData": {
+    "Code in JavaScript2": [
+      {
+        "product_present_in_second_image": true,
+        "exact_same_product": true,
+        "confidence": 0.99,
+        "reasoning": "Both images show the same product with identical features and details.",
+        "visible_differences": [],
+        "analysis": {
+          "same_shape": true,
+          "same_color": true,
+          "same_components": true,
+          "same_branding": true,
+          "same_accessories": true,
+          "same_mounting": true,
+          "same_proportions": true,
+          "notes": "The images are identical."
+        }
+      }
+    ]
+  },
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "da67fcc8dfca03d3261c9584dfafe4aa8618da738cab6aff809cab91ce61c81f"

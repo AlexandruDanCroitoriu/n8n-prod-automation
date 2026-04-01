@@ -11,7 +11,7 @@ dev url:   https://dev.shopify.com/dashboard/131116785/apps
 
 # Ai Api keys
 DeepSeek api keys: https://platform.deepseek.com/usage
-
+OpenAi Usage     : https://platform.openai.com/usage
 
 # Search Api keys
 Serper Search: https://serper.dev/dashboard
@@ -22,3 +22,10 @@ Serper Search: https://serper.dev/dashboard
 
 # Extra
 n8n plugin for shopify graphql api: https://www.npmjs.com/package/n8n-nodes-shopify-graphql
+
+
+
+
+
+# Server setup
+Dockploy: https://dokploy.com/
