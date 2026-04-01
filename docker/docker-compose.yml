@@ -54,13 +54,6 @@ services:
       n8n_net:
     # extra_hosts:
       # - host.docker.internal:host-gateway
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.n8n.rule=Host(`n8n.alexandru-croitoriu.dev`)"
-      - "traefik.http.routers.n8n.entrypoints=websecure"
-      - "traefik.http.routers.n8n.tls=true"
-      - "traefik.http.services.n8n.loadbalancer.server.port=5678"
-      # - "traefik.docker.network=bridge"
 
   litellm-postgres:
     image: postgres:17-alpine
@@ -96,12 +89,6 @@ services:
         condition: service_healthy
     networks: 
       litellm_net:
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.litellm.rule=Host(`litellm.alexandru-croitoriu.dev`)"
-      - "traefik.http.routers.litellm.entrypoints=websecure"
-      - "traefik.http.routers.litellm.tls=true"
-      - "traefik.http.services.litellm.loadbalancer.server.port=4000"
 
   # postiz-postgres:
   #   image: postgres:17-alpine
