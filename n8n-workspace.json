@@ -7,37 +7,37 @@
             {
               "id": "332c6dc8-15dc-48e4-806a-3695ebba8ba7",
               "name": "product_title",
-              "value": "product title from N8N no images",
+              "value": "={{ $json.product_title }}",
               "type": "string"
             },
             {
               "id": "30861f38-5396-4a42-886d-2d0d7550a98f",
               "name": "description_html",
-              "value": "<p>Product description from graphql</p>",
+              "value": "={{ $json.description_html }}",
               "type": "string"
             },
             {
               "id": "de57e996-dfe3-4b19-8c56-1262aa68acbb",
               "name": "status",
-              "value": "DRAFT",
+              "value": "={{ $json.status }}",
               "type": "string"
             },
             {
               "id": "5b863002-c4de-41ff-961b-8f0bbc71b46f",
               "name": "template_suffix",
-              "value": "pagepilot-Standard-GLOBAL",
+              "value": "={{ $json.template_suffix }}",
               "type": "string"
             },
             {
               "id": "741bda70-720f-49ce-85fb-b9fe0fd20ae4",
               "name": "price",
-              "value": "99",
+              "value": "={{ $json.price }}",
               "type": "string"
             },
             {
               "id": "7427632a-a08f-4f7c-8f92-15661f9bf0f5",
               "name": "compare_at_price",
-              "value": "199",
+              "value": "={{ $json.compare_at_price }}",
               "type": "string"
             },
             {
@@ -49,217 +49,217 @@
             {
               "name": "beneficiu_1",
               "type": "string",
-              "value": "⚡ Acces instant în colțuri imposibile, fără efort sau frustrări inutile.",
+              "value": "={{ $json.beneficiu_1 }}",
               "id": "f28f41fa-5d73-480b-a8a0-a95bdcf7b924"
             },
             {
               "name": "beneficiu_2",
               "type": "string",
-              "value": "⚡ Acces instant în colțuri imposibile, fără efort sau frustrări inutile.",
+              "value": "={{ $json.beneficiu_2 }}",
               "id": "3940cd64-a01d-48f4-a667-fcdd40946a40"
             },
             {
               "name": "beneficiu_3",
               "type": "string",
-              "value": "💪 Control total și stabilitate maximă datorită mânerului lateral ergonomic.",
+              "value": "={{ $json.beneficiu_3 }}",
               "id": "a3bfcb0a-f031-4987-9655-a60af8d918aa"
             },
             {
               "name": "beneficiu_4",
               "type": "string",
-              "value": "🚀 Universal și versatil, compatibil cu orice mașină de găurit ai deja acasă.",
+              "value": "={{ $json.beneficiu_4 }}",
               "id": "05524e22-9cf0-4887-9eb3-f7673e659c46"
             },
             {
               "name": "section_1_title",
               "type": "string",
-              "value": "Adio Spatii Inaccesibile",
+              "value": "={{ $json.section_1_title }}",
               "id": "75eee4be-d405-49e8-adac-409c5fe00bf6"
             },
             {
               "name": "section_1_description",
               "type": "string",
-              "value": "Uită de mobila demontată sau de zgârieturi. Ajungi instant în spatele cabinetelor sau între grinzi, rezolvând sarcina rapid.",
+              "value": "={{ $json.section_1_description }}",
               "id": "495b79e5-5882-4b63-9cd4-6ae1460e93f7"
             },
             {
               "name": "section_2_title",
               "type": "string",
-              "value": "Eficiență Fără Cheie",
+              "value": "={{ $json.section_2_title }}",
               "id": "8fec9463-6c9b-4b3b-bab0-90393ccd6ccb"
             },
             {
               "name": "section_2_description",
               "type": "string",
-              "value": "Mandrina de 10mm îți permite să schimbi accesoriile manual. Câștigi timp prețios și elimini stresul căutării cheii de mandrină.",
+              "value": "={{ $json.section_2_description }}",
               "id": "a13d0b20-dc92-445a-a3ac-3d6ecf6b485c"
             },
             {
               "name": "section_3_title",
               "type": "string",
-              "value": "Putere și Stabilitate",
+              "value": "={{ $json.section_3_title }}",
               "id": "3dfe4aeb-9479-4587-8d66-37c5416958e8"
             },
             {
               "name": "section_3_description",
               "type": "string",
-              "value": "Sistemul de angrenaje 1:1 și mânerul detașabil îți oferă forța necesară pentru a găuri precis, fără ca unealta să îți alunece din mână.",
+              "value": "={{ $json.section_3_description }}",
               "id": "a497f4cd-c95b-48db-be9d-c696a70ffad6"
             },
             {
               "name": "rev_5_name",
               "type": "string",
-              "value": "Simona P.",
+              "value": "={{ $json.rev_5_name }}",
               "id": "2b7d8a96-7d15-46b5-b570-ba06c98dbe21"
             },
             {
               "name": "rev_1_text",
               "type": "string",
-              "value": "Genial pentru spații înguste! Am montat rafturile în 5 minute, recomand.",
+              "value": "={{ $json.rev_1_text }}",
               "id": "7705c69f-b52c-414f-a7f6-7fc45bdd9554"
             },
             {
               "name": "rev_1_name",
               "type": "string",
-              "value": "Andrei V.",
+              "value": "={{ $json.rev_1_name }}",
               "id": "96bcab4b-816c-4d60-8ed0-d9cd749575cf"
             },
             {
               "name": "rev_2_text",
               "type": "string",
-              "value": "Foarte robust și ușor de folosit. M-a salvat de multă muncă inutilă.",
+              "value": "={{ $json.rev_2_text }}",
               "id": "bd6823c0-98eb-4042-a768-a901b7c5742d"
             },
             {
               "name": "rev_2_name",
               "type": "string",
-              "value": "Elena M.",
+              "value": "={{ $json.rev_2_name }}",
               "id": "1576eca8-a77f-4867-85f8-191a48cb5a46"
             },
             {
               "name": "rev_3_text",
               "type": "string",
-              "value": "Calitate surprinzătoare. Se potrivește perfect pe bormașina mea veche, este foarte util.",
+              "value": "={{ $json.rev_3_text }}",
               "id": "4582a73b-1f9c-4e53-a2a0-75e10aae2504"
             },
             {
               "name": "rev_3_name",
               "type": "string",
-              "value": "Marius D.",
+              "value": "={{ $json.rev_3_name }}",
               "id": "bd2865c3-c6d9-47bd-8c8b-7fdb6438a52a"
             },
             {
               "name": "rev_4_text",
               "type": "string",
-              "value": "O soluție rapidă și eficientă. Nu ar trebui să lipsească din nicio trusă.",
+              "value": "={{ $json.rev_4_text }}",
               "id": "1ecebf64-691d-4df9-86ac-1b645aaf0dd8"
             },
             {
               "name": "rev_4_name",
               "type": "string",
-              "value": "Cristian N.",
+              "value": "={{ $json.rev_4_name }}",
               "id": "0d002571-1204-48bb-90f8-f1a22033b4ac"
             },
             {
               "name": "rev_5_text",
               "type": "string",
-              "value": "Ușor, dar puternic. Ajunge exact acolo unde nicio altă unealtă nu poate.",
+              "value": "={{ $json.rev_5_text }}",
               "id": "96c921f6-8862-420f-865c-19975235d924"
             },
             {
               "name": "faq_1_q",
               "type": "string",
-              "value": "Î: Se potrivește acest adaptor cu bormașina mea cu acumulator?",
+              "value": "={{ $json.faq_1_q }}",
               "id": "e53de248-eec7-4468-bfdd-a9d81aa458d6"
             },
             {
               "name": "faq_1_a",
               "type": "string",
-              "value": "R: Da, tija rotundă de 9.5mm este universală și se fixează perfect în orice mandrină standard de 3/8\", indiferent dacă unealta este cu fir sau acumulator.",
+              "value": "={{ $json.faq_1_a }}",
               "id": "888a9487-e5c5-4b3e-8b8b-a7199d6fb95a"
             },
             {
               "name": "faq_2_q",
               "type": "string",
-              "value": "Î: Ce dimensiuni de burghie pot folosi cu acest dispozitiv?",
+              "value": "={{ $json.faq_2_q }}",
               "id": "ca9c1162-0e19-4504-9612-bfce5070f85b"
             },
             {
               "name": "faq_2_a",
               "type": "string",
-              "value": "R: Mandrina keyless de înaltă calitate acceptă o gamă largă de accesorii, având o capacitate de deschidere între 0.8mm și 10mm.",
+              "value": "={{ $json.faq_2_a }}",
               "id": "0c8b8d65-b628-44f4-8688-a778272b30d4"
             },
             {
               "name": "faq_3_q",
               "type": "string",
-              "value": "Î: Este rezistent pentru sarcini mai dificile în metal sau lemn dur?",
+              "value": "={{ $json.faq_3_q }}",
               "id": "096f4bc5-d351-4530-aa1d-829bb7d95dcf"
             },
             {
               "name": "faq_3_a",
               "type": "string",
-              "value": "R: Adaptorul suportă un cuplu de 20-25 N·m și are angrenaje din oțel vanadiu, fiind ideal pentru lemn, plastic și reparații auto la viteze sub 500 RPM.",
+              "value": "={{ $json.faq_3_a }}",
               "id": "732bd9f1-20c8-4f08-a7a6-49950f5e4b36"
             },
             {
               "name": "faq_4_q",
               "type": "string",
-              "value": "Î: Pot muta mânerul pe ambele părți ale adaptorului?",
+              "value": "={{ $json.faq_4_q }}",
               "id": "e448c203-5ad4-4d8d-a404-b9e00bcd147b"
             },
             {
               "name": "faq_4_a",
               "type": "string",
-              "value": "R: Desigur! Mânerul este detașabil și poate fi înșurubat pe oricare dintre cele două părți ale corpului roșu din ABS, pentru un confort personalizat.",
+              "value": "={{ $json.faq_4_a }}",
               "id": "d9b18a70-4378-4f1c-9e0e-7b449460ba7a"
             },
             {
               "name": "rev_5_img",
               "type": "string",
-              "value": "gid://shopify/MediaImage/37873242177792",
+              "value": "={{ $json.rev_5_img }}",
               "id": "7577812b-a09e-4269-95d6-0d9b853f959c"
             },
             {
               "name": "rev_4_img",
               "type": "string",
-              "value": "gid://shopify/MediaImage/37873242177792",
+              "value": "={{ $json.rev_4_img }}",
               "id": "8c3aa4b4-72f5-4fb4-9fb1-08fa5b23b5c8"
             },
             {
               "name": "rev_3_img",
               "type": "string",
-              "value": "gid://shopify/MediaImage/37873242177792",
+              "value": "={{ $json.rev_3_img }}",
               "id": "c06b311e-c6df-428a-806b-42f68d20dab0"
             },
             {
               "name": "rev_2_img",
               "type": "string",
-              "value": "gid://shopify/MediaImage/37873242177792",
+              "value": "={{ $json.rev_2_img }}",
               "id": "1a19a408-c8bd-4ca2-9712-66df3b2fdf9f"
             },
             {
               "name": "rev_1_img",
               "type": "string",
-              "value": "gid://shopify/MediaImage/37873242177792",
+              "value": "={{ $json.rev_1_img }}",
               "id": "aed8b961-743e-4a1a-a06b-c8658b2c5a8f"
             },
             {
               "name": "section_3_image",
               "type": "string",
-              "value": "gid://shopify/MediaImage/37873242177792",
+              "value": "={{ $json.section_3_image }}",
               "id": "7dd0fc03-1dbe-4312-be8c-445d1d2e0d47"
             },
             {
               "name": "section_2_image",
               "type": "string",
-              "value": "gid://shopify/MediaImage/37873242177792",
+              "value": "={{ $json.section_2_image }}",
               "id": "393af9a4-dc9a-4c2c-b607-77a8de9ff6c2"
             },
             {
               "name": "section_1_image",
               "type": "string",
-              "value": "gid://shopify/MediaImage/37873242177792",
+              "value": "={{ $json.section_1_image }}",
               "id": "dde02eac-00e7-41df-8f4e-1fc4e612bcc3"
             }
           ]
@@ -317,7 +317,7 @@
             {
               "id": "e2fa724d-5034-471f-89e6-1ffafba728e2",
               "name": "media_links",
-              "value": "={{ ['https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg',] }}",
+              "value": "={{ ['https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg'] }}",
               "type": "array"
             }
           ]
@@ -327,8 +327,8 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        336,
-        768
+        320,
+        928
       ],
       "id": "4667700c-7f97-4ee9-b5cd-296b0b5a15e0",
       "name": "Images"
@@ -336,7 +336,7 @@
     {
       "parameters": {
         "content": "# Shopify product upload",
-        "height": 304,
+        "height": 464,
         "width": 1520,
         "color": 4
       },
@@ -381,7 +381,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"url\": \"{{ $('Search Initial data').item.json.URL }}\",\n  \"num\": 50\n} ",
+        "jsonBody": "={\n  \"url\": \"{{ $('Search Initial data').item.json.URL }}\",\n  \"num\": 100\n} ",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -770,6 +770,21 @@
           "name": "Shopify account"
         }
       }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"product_title\": \"product title from N8N no images\",\n  \"description_html\": \"<p>Product description from graphql</p>\",\n  \"status\": \"DRAFT\",\n  \"template_suffix\": \"pagepilot-Standard-GLOBAL\",\n  \"price\": \"99\",\n  \"compare_at_price\": \"199\",\n  \"media_links\": {{ $json.media_links || [] }},\n  \"beneficiu_1\": \"⚡ Acces instant în colțuri imposibile, fără efort sau frustrări inutile.\",\n  \"beneficiu_2\": \"⚡ Acces instant în colțuri imposibile, fără efort sau frustrări inutile.\",\n  \"beneficiu_3\": \"💪 Control total și stabilitate maximă datorită mânerului lateral ergonomic.\",\n  \"beneficiu_4\": \"🚀 Universal și versatil, compatibil cu orice mașină de găurit ai deja acasă.\",\n  \"section_1_title\": \"Adio Spatii Inaccesibile\",\n  \"section_1_description\": \"Uită de mobila demontată sau de zgârieturi. Ajungi instant în spatele cabinetelor sau între grinzi, rezolvând sarcina rapid.\",\n  \"section_2_title\": \"Eficiență Fără Cheie\",\n  \"section_2_description\": \"Mandrina de 10mm îți permite să schimbi accesoriile manual. Câștigi timp prețios și elimini stresul căutării cheii de mandrină.\",\n  \"section_3_title\": \"Putere și Stabilitate\",\n  \"section_3_description\": \"Sistemul de angrenaje 1:1 și mânerul detașabil îți oferă forța necesară pentru a găuri precis, fără ca unealta să îți alunece din mână.\",\n  \"rev_1_text\": \"Genial pentru spații înguste! Am montat rafturile în 5 minute, recomand.\",\n  \"rev_1_name\": \"Andrei V.\",\n  \"rev_2_text\": \"Foarte robust și ușor de folosit. M-a salvat de multă muncă inutilă.\",\n  \"rev_2_name\": \"Elena M.\",\n  \"rev_3_text\": \"Calitate surprinzătoare. Se potrivește perfect pe bormașina mea veche, este foarte util.\",\n  \"rev_3_name\": \"Marius D.\",\n  \"rev_4_text\": \"O soluție rapidă și eficientă. Nu ar trebui să lipsească din nicio trusă.\",\n  \"rev_4_name\": \"Cristian N.\",\n  \"rev_5_text\": \"Ușor, dar puternic. Ajunge exact acolo unde nicio altă unealtă nu poate.\",\n  \"rev_5_name\": \"Simona P.\",\n  \"faq_1_q\": \"Î: Se potrivește acest adaptor cu bormașina mea cu acumulator?\",\n  \"faq_1_a\": \"R: Da, tija rotundă de 9.5mm este universală și se fixează perfect în orice mandrină standard de 3/8\\\", indiferent dacă unealta este cu fir sau acumulator.\",\n  \"faq_2_q\": \"Î: Ce dimensiuni de burghie pot folosi cu acest dispozitiv?\",\n  \"faq_2_a\": \"R: Mandrina keyless de înaltă calitate acceptă o gamă largă de accesorii, având o capacitate de deschidere între 0.8mm și 10mm.\",\n  \"faq_3_q\": \"Î: Este rezistent pentru sarcini mai dificile în metal sau lemn dur?\",\n  \"faq_3_a\": \"R: Adaptorul suportă un cuplu de 20-25 N·m și are angrenaje din oțel vanadiu, fiind ideal pentru lemn, plastic și reparații auto la viteze sub 500 RPM.\",\n  \"faq_4_q\": \"Î: Pot muta mânerul pe ambele părți ale adaptorului?\",\n  \"faq_4_a\": \"R: Desigur! Mânerul este detașabil și poate fi înșurubat pe oricare dintre cele două părți ale corpului roșu din ABS, pentru un confort personalizat.\",\n  \"rev_1_img\": \"gid://shopify/MediaImage/37873242177792\",\n  \"rev_2_img\": \"gid://shopify/MediaImage/37873242177792\",\n  \"rev_3_img\": \"gid://shopify/MediaImage/37873242177792\",\n  \"rev_4_img\": \"gid://shopify/MediaImage/37873242177792\",\n  \"rev_5_img\": \"gid://shopify/MediaImage/37873242177792\",\n  \"section_1_image\": \"gid://shopify/MediaImage/37873242177792\",\n  \"section_2_image\": \"gid://shopify/MediaImage/37873242177792\",\n  \"section_3_image\": \"gid://shopify/MediaImage/37873242177792\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        320,
+        768
+      ],
+      "id": "5d5e9b8c-e431-467e-b119-2a44f67397eb",
+      "name": "Set Variables JSON"
     }
   ],
   "connections": {
@@ -789,6 +804,17 @@
         [
           {
             "node": "Set Metafields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Images": {
+      "main": [
+        [
+          {
+            "node": "Set Variables JSON",
             "type": "main",
             "index": 0
           }
@@ -915,6 +941,17 @@
         [
           {
             "node": "set price and compare at price",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Variables JSON": {
+      "main": [
+        [
+          {
+            "node": "Product FULL DATA - no images",
             "type": "main",
             "index": 0
           }
