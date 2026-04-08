@@ -1,0 +1,1324 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "={{ $json.properties.title }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1bpH60V-O6qEgUeIYkayeqAB8rLhpkHF4",
+          "mode": "list",
+          "cachedResultName": "alin-products",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1bpH60V-O6qEgUeIYkayeqAB8rLhpkHF4"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        208,
+        -160
+      ],
+      "id": "746261fa-32ad-4a12-8f8c-f9b5abc27f8e",
+      "name": "Create folder1",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "t5ziNK4DtfR1Z2lf",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "spreadsheet",
+        "title": "=Alin Product {{ $json.backend_product_title }}",
+        "sheetsUi": {
+          "sheetValues": [
+            {
+              "title": "Main"
+            },
+            {
+              "title": "URLs"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "397b9223-a225-4699-9714-1e939cb43f60",
+      "name": "Create New Sheet1",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        16,
+        -160
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "LH5bLTS6ht9DHYPv",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "move",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Create New Sheet1').item.json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        416,
+        -160
+      ],
+      "id": "1d83831e-21a1-45d4-8153-d520e200997f",
+      "name": "Move Sheet file1",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "t5ziNK4DtfR1Z2lf",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "55ac63e1-2dbf-4f96-bc81-b93084a2086a",
+              "name": "backend_product_title",
+              "value": "test product title",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -176,
+        -160
+      ],
+      "id": "566f2aa0-cdfd-4672-b3fc-785ec86147ff",
+      "name": "Search Initial data1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Create New Sheet1').item.json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Create New Sheet1').item.json.sheets[0].properties.sheetId }}",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Drive Folder link": "=https://drive.google.com/drive/folders/{{ $('Create folder1').item.json.id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Drive Folder link",
+              "displayName": "Drive Folder link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "shopify_gid",
+              "displayName": "shopify_gid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "product_title",
+              "displayName": "product_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "description_html",
+              "displayName": "description_html",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "template_suffix",
+              "displayName": "template_suffix",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "price",
+              "displayName": "price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "compare_at_price",
+              "displayName": "compare_at_price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "media_links",
+              "displayName": "media_links",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "beneficiu_1",
+              "displayName": "beneficiu_1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "beneficiu_2",
+              "displayName": "beneficiu_2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "beneficiu_3",
+              "displayName": "beneficiu_3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "beneficiu_4",
+              "displayName": "beneficiu_4",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "section_1_title",
+              "displayName": "section_1_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "section_1_description",
+              "displayName": "section_1_description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "section_2_title",
+              "displayName": "section_2_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "section_2_description",
+              "displayName": "section_2_description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "section_3_title",
+              "displayName": "section_3_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "section_3_description",
+              "displayName": "section_3_description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rev_1_text",
+              "displayName": "rev_1_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rev_1_name",
+              "displayName": "rev_1_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rev_2_text",
+              "displayName": "rev_2_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rev_2_name",
+              "displayName": "rev_2_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rev_3_text",
+              "displayName": "rev_3_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rev_3_name",
+              "displayName": "rev_3_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rev_4_text",
+              "displayName": "rev_4_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rev_4_name",
+              "displayName": "rev_4_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rev_5_text",
+              "displayName": "rev_5_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rev_5_name",
+              "displayName": "rev_5_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "faq_1_q",
+              "displayName": "faq_1_q",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "faq_1_a",
+              "displayName": "faq_1_a",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "faq_2_q",
+              "displayName": "faq_2_q",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "faq_2_a",
+              "displayName": "faq_2_a",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "faq_3_q",
+              "displayName": "faq_3_q",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "faq_3_a",
+              "displayName": "faq_3_a",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "faq_4_q",
+              "displayName": "faq_4_q",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "faq_4_a",
+              "displayName": "faq_4_a",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rev_1_img",
+              "displayName": "rev_1_img",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rev_2_img",
+              "displayName": "rev_2_img",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rev_3_img",
+              "displayName": "rev_3_img",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rev_4_img",
+              "displayName": "rev_4_img",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rev_5_img",
+              "displayName": "rev_5_img",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "section_1_image",
+              "displayName": "section_1_image",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "section_2_image",
+              "displayName": "section_2_image",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "section_3_image",
+              "displayName": "section_3_image",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1248,
+        -160
+      ],
+      "id": "b2f6aded-a04b-4ce3-b997-edf3570fc671",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "LH5bLTS6ht9DHYPv",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      \"Drive Folder link\": \"\",\n      shopify_gid: \"\",\n      product_title: \"\",\n      description_html: \"\",\n      status: \"\",\n      template_suffix: \"\",\n      price: \"\",\n      compare_at_price: \"\",\n      media_links: \"\",\n      beneficiu_1: \"\",\n      beneficiu_2: \"\",\n      beneficiu_3: \"\",\n      beneficiu_4: \"\",\n      section_1_title: \"\",\n      section_1_description: \"\",\n      section_2_title: \"\",\n      section_2_description: \"\",\n      section_3_title: \"\",\n      section_3_description: \"\",\n      rev_1_text: \"\",\n      rev_1_name: \"\",\n      rev_2_text: \"\",\n      rev_2_name: \"\",\n      rev_3_text: \"\",\n      rev_3_name: \"\",\n      rev_4_text: \"\",\n      rev_4_name: \"\",\n      rev_5_text: \"\",\n      rev_5_name: \"\",\n      faq_1_q: \"\",\n      faq_1_a: \"\",\n      faq_2_q: \"\",\n      faq_2_a: \"\",\n      faq_3_q: \"\",\n      faq_3_a: \"\",\n      faq_4_q: \"\",\n      faq_4_a: \"\",\n      rev_1_img: \"\",\n      rev_2_img: \"\",\n      rev_3_img: \"\",\n      rev_4_img: \"\",\n      rev_5_img: \"\",\n      section_1_image: \"\",\n      section_2_image: \"\",\n      section_3_image: \"\"\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        -160
+      ],
+      "id": "ce85e8dc-481e-4eb8-9212-864490534a38",
+      "name": "Main sheet headers"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      \"URLS\": \"\",\n      \"description\": \"\",\n      \"title\": \"\",\n      \"images\": \"\"\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        16
+      ],
+      "id": "5ee3a971-246f-425f-8b21-55c58dfbabc4",
+      "name": "URLs sheet headers"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Create New Sheet1').item.json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Create New Sheet1').item.json.sheets[0].properties.sheetId }}"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Drive Folder link",
+              "displayName": "Drive Folder link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Drive Sheets link",
+              "displayName": "Drive Sheets link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "shopify_gid",
+              "displayName": "shopify_gid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "product_title",
+              "displayName": "product_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "description_html",
+              "displayName": "description_html",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "template_suffix",
+              "displayName": "template_suffix",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "price",
+              "displayName": "price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "compare_at_price",
+              "displayName": "compare_at_price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "media_links",
+              "displayName": "media_links",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "beneficiu_1",
+              "displayName": "beneficiu_1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "beneficiu_2",
+              "displayName": "beneficiu_2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "beneficiu_3",
+              "displayName": "beneficiu_3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "beneficiu_4",
+              "displayName": "beneficiu_4",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "section_1_title",
+              "displayName": "section_1_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "section_1_description",
+              "displayName": "section_1_description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "section_2_title",
+              "displayName": "section_2_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "section_2_description",
+              "displayName": "section_2_description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "section_3_title",
+              "displayName": "section_3_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "section_3_description",
+              "displayName": "section_3_description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rev_1_text",
+              "displayName": "rev_1_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rev_1_name",
+              "displayName": "rev_1_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rev_2_text",
+              "displayName": "rev_2_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rev_2_name",
+              "displayName": "rev_2_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rev_3_text",
+              "displayName": "rev_3_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rev_3_name",
+              "displayName": "rev_3_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rev_4_text",
+              "displayName": "rev_4_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rev_4_name",
+              "displayName": "rev_4_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rev_5_text",
+              "displayName": "rev_5_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rev_5_name",
+              "displayName": "rev_5_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "faq_1_q",
+              "displayName": "faq_1_q",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "faq_1_a",
+              "displayName": "faq_1_a",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "faq_2_q",
+              "displayName": "faq_2_q",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "faq_2_a",
+              "displayName": "faq_2_a",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "faq_3_q",
+              "displayName": "faq_3_q",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "faq_3_a",
+              "displayName": "faq_3_a",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "faq_4_q",
+              "displayName": "faq_4_q",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "faq_4_a",
+              "displayName": "faq_4_a",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rev_1_img",
+              "displayName": "rev_1_img",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rev_2_img",
+              "displayName": "rev_2_img",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rev_3_img",
+              "displayName": "rev_3_img",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rev_4_img",
+              "displayName": "rev_4_img",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rev_5_img",
+              "displayName": "rev_5_img",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "section_1_image",
+              "displayName": "section_1_image",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "section_2_image",
+              "displayName": "section_2_image",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "section_3_image",
+              "displayName": "section_3_image",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        832,
+        -160
+      ],
+      "id": "15986343-c3a9-44a1-afc2-4c4f69f22790",
+      "name": "Main Sheet Columns",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "LH5bLTS6ht9DHYPv",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Create New Sheet1').item.json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Create New Sheet1').item.json.sheets[1].properties.sheetId }}",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        832,
+        16
+      ],
+      "id": "32ede964-b513-412f-838f-1ead4f12a2ec",
+      "name": "URLs Sheet Columns",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "LH5bLTS6ht9DHYPv",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Create New Sheet1').item.json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Create New Sheet1').item.json.sheets[0].properties.sheetId }}",
+          "mode": "id"
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1040,
+        -160
+      ],
+      "id": "0e0a9a4d-89f9-4ee4-8df8-1553edc3cb8d",
+      "name": "Main Sheet Clean rows",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "LH5bLTS6ht9DHYPv",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Create New Sheet1').item.json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Create New Sheet1').item.json.sheets[1].properties.sheetId }}",
+          "mode": "id"
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1040,
+        16
+      ],
+      "id": "dc0f6333-b1e7-47dd-ad1a-3da5ab13783c",
+      "name": "URLs Sheet Clean rows",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "LH5bLTS6ht9DHYPv",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        -160
+      ],
+      "id": "919ad883-b33e-4ab7-a483-3a483eb43b4e",
+      "name": "When clicking ‘Execute workflow’"
+    }
+  ],
+  "connections": {
+    "Create folder1": {
+      "main": [
+        [
+          {
+            "node": "Move Sheet file1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create New Sheet1": {
+      "main": [
+        [
+          {
+            "node": "Create folder1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Move Sheet file1": {
+      "main": [
+        [
+          {
+            "node": "Main sheet headers",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "URLs sheet headers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Initial data1": {
+      "main": [
+        [
+          {
+            "node": "Create New Sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Main sheet headers": {
+      "main": [
+        [
+          {
+            "node": "Main Sheet Columns",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "URLs sheet headers": {
+      "main": [
+        [
+          {
+            "node": "URLs Sheet Columns",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Main Sheet Columns": {
+      "main": [
+        [
+          {
+            "node": "Main Sheet Clean rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "URLs Sheet Columns": {
+      "main": [
+        [
+          {
+            "node": "URLs Sheet Clean rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Main Sheet Clean rows": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Search Initial data1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "3bc22dee87345d4fd7b7c4fb8dd9ad70b8ed3f11fd154452b755ea49b9a98908"
+  }
+}

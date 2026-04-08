@@ -16,6 +16,8 @@ OpenAi Usage     : https://platform.openai.com/usage
 # Search Api keys
 Serper Search: https://serper.dev/dashboard
 
+# Google Cloud 
+API Apis & Services: https://console.cloud.google.com/apis/credentials?referrer=search&authuser=1&project=synthetic-song-474512-m7
 
 
 
@@ -29,3 +31,7 @@ n8n plugin for shopify graphql api: https://www.npmjs.com/package/n8n-nodes-shop
 
 # Server setup
 Dockploy: https://dokploy.com/
+
+
+{{ $fromAI('matematical_equation', 'The mathematical equation or expression to solve') }}
+{{ $fromAI('message_text', 'The message text to send to the user') }}

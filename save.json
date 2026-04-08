@@ -1,0 +1,4073 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "const input = items?.[0]?.json ?? {};\n\nfunction getNodeItemJson(nodeName) {\n  try {\n    return $items(nodeName, 0, 0)?.[0]?.json ?? {};\n  } catch (error) {\n    return {};\n  }\n}\n\nconst createProduct = getNodeItemJson(\"Create Product\");\nconst getProductData = getNodeItemJson(\"Get Product DATA\");\nconst parsedImageLinksData = getNodeItemJson(\"string to array for image links\");\n\n// surse posibile, în ordinea priorității\nconst sources = [\n  input?.output ?? {},\n  input ?? {},\n  parsedImageLinksData?.output ?? {},\n  parsedImageLinksData ?? {},\n  getProductData?.output ?? {},\n  getProductData ?? {},\n];\n\n// helper: ia primul câmp nenul / nedefinit / nevid\nfunction getFieldValue(key) {\n  for (const src of sources) {\n    if (!src || typeof src !== \"object\") continue;\n\n    // cheie exactă\n    if (src[key] !== undefined && src[key] !== null && src[key] !== \"\") {\n      return src[key];\n    }\n\n    // fallback pentru chei cu spații accidentale\n    const trimmedMatch = Object.keys(src).find(\n      k => String(k).trim() === key\n    );\n    if (trimmedMatch && src[trimmedMatch] !== undefined && src[trimmedMatch] !== null && src[trimmedMatch] !== \"\") {\n      return src[trimmedMatch];\n    }\n  }\n\n  // dacă nu găsim nimic, întoarcem string gol\n  return \"\";\n}\n\nfunction normalizeProductGid(raw) {\n  if (raw == null || raw === \"\") return null;\n  const value = String(raw).trim();\n  if (!value) return null;\n\n  if (value.startsWith(\"gid://shopify/Product/\")) return value;\n\n  const id = value.includes(\"/\") ? value.split(\"/\").pop() : value;\n  return id ? `gid://shopify/Product/${id}` : null;\n}\n\nfunction normalizeMediaImageGid(raw) {\n  if (raw == null || raw === \"\") return null;\n  const value = String(raw).trim();\n  if (!value) return null;\n\n  if (\n    value.startsWith(\"gid://shopify/MediaImage/\") ||\n    value.startsWith(\"gid://shopify/File/\")\n  ) {\n    return value;\n  }\n\n  const id = value.includes(\"/\") ? value.split(\"/\").pop() : value;\n  return id ? `gid://shopify/MediaImage/${id}` : null;\n}\n\nconst productId = normalizeProductGid(\n  createProduct?.data?.productCreate?.product?.id ??\n  getFieldValue(\"product_id\") ??\n  input?.data?.productCreate?.product?.id ??\n  null\n);\n\nif (!productId) {\n  throw new Error(\"Missing product id from Create Product\");\n}\n\nconst NAMESPACE = \"custom\";\n\nconst firstBatchSchema = [\n  { key: \"beneficiu_1\", type: \"rich_text_field\" },\n  { key: \"beneficiu_2\", type: \"rich_text_field\" },\n  { key: \"beneficiu_3\", type: \"rich_text_field\" },\n  { key: \"beneficiu_4\", type: \"rich_text_field\" },\n  { key: \"section_1_title\", type: \"single_line_text_field\" },\n  { key: \"section_1_description\", type: \"rich_text_field\" },\n  { key: \"section_2_title\", type: \"single_line_text_field\" },\n  { key: \"section_2_description\", type: \"rich_text_field\" },\n  { key: \"section_3_title\", type: \"single_line_text_field\" },\n  { key: \"section_3_description\", type: \"rich_text_field\" },\n  { key: \"rev_1_text\", type: \"rich_text_field\" },\n  { key: \"rev_1_name\", type: \"single_line_text_field\" },\n  { key: \"rev_2_text\", type: \"rich_text_field\" },\n  { key: \"rev_2_name\", type: \"single_line_text_field\" },\n  { key: \"rev_3_text\", type: \"rich_text_field\" },\n  { key: \"rev_3_name\", type: \"single_line_text_field\" },\n  { key: \"rev_4_text\", type: \"rich_text_field\" },\n  { key: \"rev_4_name\", type: \"single_line_text_field\" },\n  { key: \"rev_5_text\", type: \"rich_text_field\" },\n  { key: \"rev_5_name\", type: \"single_line_text_field\" },\n];\n\nconst secondBatchSchema = [\n  { key: \"faq_1_q\", type: \"single_line_text_field\" },\n  { key: \"faq_1_a\", type: \"rich_text_field\" },\n  { key: \"faq_2_q\", type: \"single_line_text_field\" },\n  { key: \"faq_2_a\", type: \"rich_text_field\" },\n  { key: \"faq_3_q\", type: \"single_line_text_field\" },\n  { key: \"faq_3_a\", type: \"rich_text_field\" },\n  { key: \"faq_4_q\", type: \"single_line_text_field\" },\n  { key: \"faq_4_a\", type: \"rich_text_field\" },\n  { key: \"rev_5_img\", type: \"file_reference\" },\n  { key: \"rev_4_img\", type: \"file_reference\" },\n  { key: \"rev_3_img\", type: \"file_reference\" },\n  { key: \"rev_2_img\", type: \"file_reference\" },\n  { key: \"rev_1_img\", type: \"file_reference\" },\n  { key: \"section_3_image\", type: \"file_reference\" },\n  { key: \"section_2_image\", type: \"file_reference\" },\n  { key: \"section_1_image\", type: \"file_reference\" },\n];\n\nfunction stripMarkdown(value) {\n  if (value == null) return \"\";\n  return String(value)\n    .replace(/\\*\\*(.*?)\\*\\*/g, \"$1\")\n    .replace(/\\*(.*?)\\*/g, \"$1\")\n    .replace(/__(.*?)__/g, \"$1\")\n    .replace(/`(.*?)`/g, \"$1\")\n    .trim();\n}\n\nfunction toRichTextFieldString(value) {\n  return JSON.stringify({\n    type: \"root\",\n    children: [\n      {\n        type: \"paragraph\",\n        children: [\n          {\n            type: \"text\",\n            value: value == null ? \"\" : stripMarkdown(String(value)),\n          },\n        ],\n      },\n    ],\n  });\n}\n\nconst fallbackImageId = normalizeMediaImageGid(\n  getFieldValue(\"image_id\")\n);\n\nfunction formatValue(type, rawValue) {\n  if (type === \"rich_text_field\") {\n    return toRichTextFieldString(rawValue);\n  }\n\n  if (type === \"single_line_text_field\") {\n    return stripMarkdown(rawValue).slice(0, 255);\n  }\n\n  if (type === \"file_reference\") {\n    const candidate = rawValue == null || rawValue === \"\" ? fallbackImageId : rawValue;\n    return normalizeMediaImageGid(candidate);\n  }\n\n  return rawValue == null ? \"\" : String(rawValue);\n}\n\nfunction shouldIncludeMetafield(type, value) {\n  // pentru imagini, trimitem doar dacă există un gid valid\n  if (type === \"file_reference\") {\n    return !!value;\n  }\n\n  // pentru celelalte, le păstrăm pe toate\n  return true;\n}\n\nfunction buildMetafields(schema) {\n  return schema\n    .map(({ key, type }) => {\n      const rawValue = getFieldValue(key);\n      const value = formatValue(type, rawValue);\n\n      if (!shouldIncludeMetafield(type, value)) {\n        return null;\n      }\n\n      return {\n        ownerId: productId,\n        namespace: NAMESPACE,\n        key,\n        type,\n        value,\n      };\n    })\n    .filter(Boolean);\n}\n\nconst firstBatch = {\n  metafields: buildMetafields(firstBatchSchema),\n};\n\nconst secondBatch = {\n  metafields: buildMetafields(secondBatchSchema),\n};\n\nreturn [\n  { json: { variables: firstBatch } },\n  { json: { variables: secondBatch } },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3408,
+        1920
+      ],
+      "id": "dce9aabe-7cef-4626-9f1b-2e08d36d5d03",
+      "name": "Prepare Metafield batch update"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "mutation",
+        "graphqlMutation": "mutation UpdateProductMetafield($metafields: [MetafieldsSetInput!]!) {\n  metafieldsSet(metafields: $metafields) {\n    metafields {\n      id\n      key\n      value\n    }\n    userErrors {\n      field\n      message\n    }\n  }\n}",
+        "graphqlMutationVariables": "={{ JSON.stringify($json.variables) }}"
+      },
+      "type": "n8n-nodes-shopify-graphql.shopifyGraphql",
+      "typeVersion": 1,
+      "position": [
+        3600,
+        1920
+      ],
+      "id": "318c026d-7ead-4ecc-b949-52538ab42600",
+      "name": "Set Metafields",
+      "credentials": {
+        "shopifyOAuth2Api": {
+          "id": "1faXl76lVKNATDoe",
+          "name": "Shopify Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e2fa724d-5034-471f-89e6-1ffafba728e2",
+              "name": "media_links",
+              "value": "={{ ['https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg','https://nobili-design.com/storage/pages/841/lg/3054Modern_living_rooms_furniture_Francesco.webp','https://birchwoodfurniture.ca/wp-content/uploads/2023/07/Modern-Living-Room-Furniture-Ideas-Hero-768x504.jpg'] }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -800,
+        1088
+      ],
+      "id": "eacc7e9e-0020-48e5-8bc8-830539fb943d",
+      "name": "Images"
+    },
+    {
+      "parameters": {
+        "content": "# Shopify product upload",
+        "height": 528,
+        "width": 1536,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2384,
+        1808
+      ],
+      "typeVersion": 1,
+      "id": "85d1c4de-ae9d-4268-a2f0-5df25eb36cba",
+      "name": "Sticky Note1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map((item) => {\n  const rawValue = item.json.link ?? item.json.url ?? \"\";\n  const raw = String(rawValue).trim();\n\n  let host = \"\";\n  let path = \"\";\n  let status_likely_product = false;\n  let status_needs_fetch = true;\n  let match_reason = \"needs_html_validation\";\n\n  try {\n    // Parse host + path with regex instead of new URL()\n    const match = raw.match(/^https?:\\/\\/([^\\/?#]+)(\\/[^?#]*)?/i);\n\n    if (!match) {\n      throw new Error(\"Could not parse absolute http/https URL\");\n    }\n\n    host = (match[1] || \"\").toLowerCase();\n    path = (match[2] || \"/\").toLowerCase();\n\n    const rules = [\n      { test: /amazon\\./.test(host) && /\\/dp\\/[a-z0-9]{10}/i.test(path), reason: \"amazon_dp\" },\n      { test: /walmart\\.com$/.test(host) && /\\/ip\\//.test(path), reason: \"walmart_ip\" },\n      { test: /walmart\\.ca$/.test(host) && /\\/ip\\//.test(path), reason: \"walmartca_ip\" },\n      { test: /ebay\\./.test(host) && /\\/itm\\//.test(path), reason: \"ebay_itm\" },\n      { test: /aliexpress\\./.test(host) && /^\\/item\\/\\d+\\.html$/.test(path), reason: \"aliexpress_item\" },\n      { test: /aliexpress\\./.test(host) && /^\\/i\\/\\d+\\.html$/.test(path), reason: \"aliexpress_i\" },\n      { test: /wayfair\\./.test(host) && /\\/pdp\\//.test(path), reason: \"wayfair_pdp\" },\n      { test: /fruugo\\./.test(host) && /\\/p-\\d+/.test(path), reason: \"fruugo_product\" },\n      { test: /alibaba\\./.test(host) && /\\/product-detail\\//.test(path), reason: \"alibaba_product_detail\" },\n      { test: /bobshop\\.co\\.za$/.test(host) && /\\/p\\/\\d+/.test(path), reason: \"bobshop_product\" },\n\n      // generic fallbacks\n      { test: /\\/product\\//.test(path), reason: \"generic_product\" },\n      { test: /\\/products\\//.test(path), reason: \"generic_products\" },\n      { test: /\\/dp\\//.test(path), reason: \"generic_dp\" },\n      { test: /\\/itm\\//.test(path), reason: \"generic_itm\" },\n      { test: /\\/ip\\//.test(path), reason: \"generic_ip\" },\n      { test: /\\/product-detail\\//.test(path), reason: \"generic_product_detail\" },\n    ];\n\n    const matched = rules.find(r => r.test);\n\n    if (matched) {\n      status_likely_product = true;\n      status_needs_fetch = false;\n      match_reason = matched.reason;\n    }\n\n    return {\n      json: {\n        ...item.json,\n        parsed_host: host,\n        parsed_path: path,\n        status_likely_product,\n        status_needs_fetch,\n        match_reason,\n      }\n    };\n  } catch (e) {\n    return {\n      json: {\n        ...item.json,\n        debug_raw: rawValue,\n        debug_raw_as_string: raw,\n        parsed_host: host,\n        parsed_path: path,\n        error_message: e.message,\n        status_likely_product: false,\n        status_needs_fetch: false,\n        match_reason: \"invalid_url\",\n      }\n    };\n  }\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -384,
+        -256
+      ],
+      "id": "2a8f9027-979a-4d8a-b117-cb65ed8bb0d9",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://google.serper.dev/lens",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-KEY",
+              "value": "={{ $('Search Initial data').item.json['X-API-KEY'] }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"url\": \"{{ $('Search Initial data').item.json.URL }}\",\n  \"num\": 100\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -384,
+        -480
+      ],
+      "id": "7baef8d1-beeb-4e04-9eda-c132b7a2161d",
+      "name": "Serper search"
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().flatMap((item) =>\n  (item.json.organic || []).map((result) => ({\n    json: {\n      title: result.title || '',\n      source: result.source || '',\n      link: result.link || '',\n      imageUrl: result.imageUrl || result.thumbnailUrl || '',\n      status_likely_product: true,\n      status_needs_fetch: true,\n    },\n  }))\n);"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -192,
+        -480
+      ],
+      "id": "d7c22d93-f913-4a2d-a1b2-13fad4295d7f",
+      "name": "format results"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Create New Sheet').item.json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Create New Sheet').item.json.sheets[0].properties.sheetId }}",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "title": "={{ $json.title }}",
+            "source": "={{ $json.source }}",
+            "link": "={{ $json.link }}",
+            "imageUrl": "={{ '=IMAGE(\"' + ($json.imageUrl || '') + '\",4,100,100)' }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "imageUrl",
+              "displayName": "imageUrl",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "link",
+              "displayName": "link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        832,
+        -480
+      ],
+      "id": "825cb833-3194-417d-905a-e13b162c34b1",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "LH5bLTS6ht9DHYPv",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "folder",
+        "name": "={{ $('Search Initial data').item.json.product_name }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1bpH60V-O6qEgUeIYkayeqAB8rLhpkHF4",
+          "mode": "list",
+          "cachedResultName": "alin-products",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1bpH60V-O6qEgUeIYkayeqAB8rLhpkHF4"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        0,
+        -704
+      ],
+      "id": "bc10a5a9-053e-4840-8c81-f9056c6454b9",
+      "name": "Create folder",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "t5ziNK4DtfR1Z2lf",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "spreadsheet",
+        "title": "={{ $json.product_name }}",
+        "sheetsUi": {
+          "sheetValues": [
+            {
+              "title": "product urls"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "cc59534e-aa64-4d97-a47a-d58c446e7feb",
+      "name": "Create New Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        -192,
+        -704
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "LH5bLTS6ht9DHYPv",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Create New Sheet').item.json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Create New Sheet').item.json.sheets[0].properties.sheetId }}"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        624,
+        -704
+      ],
+      "id": "9392806a-3cf6-470b-a84f-c8350a3d4e22",
+      "name": "Create Columns",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "LH5bLTS6ht9DHYPv",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "move",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Create New Sheet').item.json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        208,
+        -704
+      ],
+      "id": "63b5827c-906b-4735-a531-247b8c470e65",
+      "name": "Move Sheet file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "t5ziNK4DtfR1Z2lf",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      imageUrl: \"\",\n      title: \"\",\n      source: \"\",\n      link: \"\"\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        -704
+      ],
+      "id": "6b9fe3a3-f84d-4616-be3c-b84dc9b95e2b",
+      "name": "Sheet headers"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Create New Sheet').item.json.spreadsheetId }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "={{ $('Create New Sheet').item.json.sheets[0].properties.sheetId }}",
+          "mode": "id"
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        832,
+        -704
+      ],
+      "id": "af240e29-178d-4b04-9ebc-a2d4d8d4ea1d",
+      "name": "clean first row after column",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "LH5bLTS6ht9DHYPv",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# Product pages process\n",
+        "height": 704,
+        "width": 1536,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -480,
+        -800
+      ],
+      "typeVersion": 1,
+      "id": "9daac0a9-44f8-4cad-ae50-31622fa7c3ca",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "mutation",
+        "graphqlMutation": "mutation UpdateVariantPricing($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {\n  productVariantsBulkUpdate(productId: $productId, variants: $variants) {\n    productVariants {\n      id\n      price\n      compareAtPrice\n    }\n    userErrors {\n      field\n      message\n    }\n  }\n}",
+        "graphqlMutationVariables": "={\n  \"productId\": \"{{ $json.data.productCreate.product.id }}\",\n  \"variants\": [\n    {\n      \"id\": \"{{ $json.data.productCreate.product.variants.nodes[0].id }}\",\n      \"price\": \"{{ $('Get Product DATA').item.json.price }}\",\n      \"compareAtPrice\": \"{{ $('Get Product DATA').item.json.compare_at_price }}\"\n    }\n  ]\n}"
+      },
+      "type": "n8n-nodes-shopify-graphql.shopifyGraphql",
+      "typeVersion": 1,
+      "position": [
+        3216,
+        1920
+      ],
+      "id": "97f63468-3b7d-4555-b15a-59646d80ee48",
+      "name": "set price and compare at price",
+      "credentials": {
+        "shopifyOAuth2Api": {
+          "id": "1faXl76lVKNATDoe",
+          "name": "Shopify Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "### n8n-product-automation \n- N8N Server: [Open Workflow](https://vmi2154303.contaboserver.net/workflow/jojIii58JwGUJMJj)  \n- Contabo VPS: [Manage Servers](https://new.contabo.com/servers/vps)\n\n### Shopify Store\n- Admin Panel: [Open Admin](https://admin.shopify.com/store/vue-tailwind-theme-skeleton/)  \n- Storefront: [View Store](https://vue-tailwind-theme-skeleton.myshopify.com)  \n- Dev Dashboard: [Open Dev Apps](https://dev.shopify.com/dashboard/131116785/apps)\n\n#### GraphQL Tools\n- Shopify GraphiQL: [Open GraphiQL](https://shopify-graphiql-app.shopifycloud.com/login)\n\n### AI API Keys\n- DeepSeek Usage: [View Dashboard](https://platform.deepseek.com/usage)\n- OpenAi Usage: [OpenAi Dashboard](https://platform.openai.com/usage) \n\n### Search API Keys\n- Serper Dashboard: [Open Serper](https://serper.dev/dashboard)\n\n### Extra\n- n8n Shopify GraphQL Plugin: [View on npm](https://www.npmjs.com/package/n8n-nodes-shopify-graphql)\n\n \n# Tasks\n - [ ] url validation using content extraction and analisys methods (title,description,mediaURLs,... other product specific data). With all the extracted data, create a score and if the url passes a certain score, it will pass as a product page.\n\n\n - [ ] product image validation using ai models to see if the product from the first image is present and an exact match in the seccond image.\nGPT-\n\n",
+        "height": 1072,
+        "width": 592
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -608,
+        -32
+      ],
+      "typeVersion": 1,
+      "id": "82e4e59a-08a0-4d21-9296-04b02ea99ec8",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "779732ef-b8ee-44cf-89eb-098c72b809e7",
+              "name": "X-API-KEY",
+              "value": "8669558ffe4793edb0fbc92cc09e44231c0ede53",
+              "type": "string"
+            },
+            {
+              "id": "398028c4-62ee-4668-b7a7-7a3ed8a63bab",
+              "name": "URL",
+              "value": "=https://s13emagst.akamaized.net/products/114248/114247192/images/res_a8501836cf8072411906c36e707e26c9.png",
+              "type": "string"
+            },
+            {
+              "id": "79d49d21-5986-49de-bfdd-d64251eb9107",
+              "name": "product_name",
+              "value": "=test product",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -384,
+        -704
+      ],
+      "id": "bccac6bc-2d63-4f7c-9f6c-4ca0ba55a20e",
+      "name": "Search Initial data"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "mutation",
+        "graphqlMutation": "mutation CreateProductWithMedia($product: ProductCreateInput!, $media: [CreateMediaInput!]) {\n  productCreate(product: $product, media: $media) {\n    product {\n      id\n      title\n      descriptionHtml\n      status\n      templateSuffix\n      variants(first: 1) {\n        nodes {\n          id\n          price\n          compareAtPrice\n        }\n      }\n      media(first: 30) {\n        nodes {\n          id\n          alt\n          mediaContentType\n        }\n      }\n    }\n    userErrors {\n      field\n      message\n    }\n  }\n}",
+        "graphqlMutationVariables": "={\n  \"product\": {\n    \"title\": \"{{ $json.product_title }}\",\n    \"descriptionHtml\": \"{{ $json.description_html }}\",\n    \"status\": \"{{ $json.status }}\",\n    \"templateSuffix\": \"{{ $json.template_suffix }}\"\n  },\n\n \"media\":\n  {{ JSON.stringify(\n    $json.media_links.map(url => ({\n      originalSource: url,\n      alt: 'product image',\n      mediaContentType: 'IMAGE'\n    })),\n    null,\n    2\n  ) }}\n} "
+      },
+      "type": "n8n-nodes-shopify-graphql.shopifyGraphql",
+      "typeVersion": 1,
+      "position": [
+        3008,
+        1920
+      ],
+      "id": "ea5c8a70-b2b4-47ad-9d07-c2677dfaf0df",
+      "name": "Create Product",
+      "credentials": {
+        "shopifyOAuth2Api": {
+          "id": "1faXl76lVKNATDoe",
+          "name": "Shopify Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"product_title\": \"Ma laud la Petru cu noua jucarie\",\n  \"description_html\": \"<p>Product description from graphql</p>\",\n  \"status\": \"DRAFT\",\n  \"template_suffix\": \"pagepilot-Standard-GLOBAL\",\n  \"price\": \"99\",\n  \"compare_at_price\": \"199\",\n  \"media_links\": {{ $json.media_links || [] }},\n  \"beneficiu_1\": \"⚡ Acces instant în colțuri imposibile, fără efort sau frustrări inutile.\",\n  \"beneficiu_2\": \"⚡ Acces instant în colțuri imposibile, fără efort sau frustrări inutile.\",\n  \"beneficiu_3\": \"💪 Control total și stabilitate maximă datorită mânerului lateral ergonomic.\",\n  \"beneficiu_4\": \"🚀 Universal și versatil, compatibil cu orice mașină de găurit ai deja acasă.\",\n  \"section_1_title\": \"Adio Spatii Inaccesibile\",\n  \"section_1_description\": \"Uită de mobila demontată sau de zgârieturi. Ajungi instant în spatele cabinetelor sau între grinzi, rezolvând sarcina rapid.\",\n  \"section_2_title\": \"Eficiență Fără Cheie\",\n  \"section_2_description\": \"Mandrina de 10mm îți permite să schimbi accesoriile manual. Câștigi timp prețios și elimini stresul căutării cheii de mandrină.\",\n  \"section_3_title\": \"Putere și Stabilitate\",\n  \"section_3_description\": \"Sistemul de angrenaje 1:1 și mânerul detașabil îți oferă forța necesară pentru a găuri precis, fără ca unealta să îți alunece din mână.\",\n  \"rev_1_text\": \"Genial pentru spații înguste! Am montat rafturile în 5 minute, recomand.\",\n  \"rev_1_name\": \"Andrei V.\",\n  \"rev_2_text\": \"Foarte robust și ușor de folosit. M-a salvat de multă muncă inutilă.\",\n  \"rev_2_name\": \"Elena M.\",\n  \"rev_3_text\": \"Calitate surprinzătoare. Se potrivește perfect pe bormașina mea veche, este foarte util.\",\n  \"rev_3_name\": \"Marius D.\",\n  \"rev_4_text\": \"O soluție rapidă și eficientă. Nu ar trebui să lipsească din nicio trusă.\",\n  \"rev_4_name\": \"Cristian N.\",\n  \"rev_5_text\": \"Ușor, dar puternic. Ajunge exact acolo unde nicio altă unealtă nu poate.\",\n  \"rev_5_name\": \"Simona P.\",\n  \"faq_1_q\": \"Î: Se potrivește acest adaptor cu bormașina mea cu acumulator?\",\n  \"faq_1_a\": \"R: Da, tija rotundă de 9.5mm este universală și se fixează perfect în orice mandrină standard de 3/8\\\", indiferent dacă unealta este cu fir sau acumulator.\",\n  \"faq_2_q\": \"Î: Ce dimensiuni de burghie pot folosi cu acest dispozitiv?\",\n  \"faq_2_a\": \"R: Mandrina keyless de înaltă calitate acceptă o gamă largă de accesorii, având o capacitate de deschidere între 0.8mm și 10mm.\",\n  \"faq_3_q\": \"Î: Este rezistent pentru sarcini mai dificile în metal sau lemn dur?\",\n  \"faq_3_a\": \"R: Adaptorul suportă un cuplu de 20-25 N·m și are angrenaje din oțel vanadiu, fiind ideal pentru lemn, plastic și reparații auto la viteze sub 500 RPM.\",\n  \"faq_4_q\": \"Î: Pot muta mânerul pe ambele părți ale adaptorului?\",\n  \"faq_4_a\": \"R: Desigur! Mânerul este detașabil și poate fi înșurubat pe oricare dintre cele două părți ale corpului roșu din ABS, pentru un confort personalizat.\",\n  \"rev_1_img\": \"gid://shopify/MediaImage/37873242177792\",\n  \"rev_2_img\": \"gid://shopify/MediaImage/37873242177792\",\n  \"rev_3_img\": \"gid://shopify/MediaImage/37873242177792\",\n  \"rev_4_img\": \"gid://shopify/MediaImage/37873242177792\",\n  \"rev_5_img\": \"gid://shopify/MediaImage/37873242177792\",\n  \"section_1_image\": \"gid://shopify/MediaImage/37873242177792\",\n  \"section_2_image\": \"gid://shopify/MediaImage/37873242177792\",\n  \"section_3_image\": \"gid://shopify/MediaImage/37873242177792\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -656,
+        1088
+      ],
+      "id": "709ce8a7-bbe0-4cc2-8893-b82f05892884",
+      "name": "Set Variables JSON"
+    },
+    {
+      "parameters": {
+        "content": "## Validate that the product in the first image is present and exactly the same product in the seccond image\n\nGPT-4o-mini for initial check\nGPT-4o for final check\n",
+        "height": 704,
+        "width": 1328,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -272,
+        -1584
+      ],
+      "typeVersion": 1,
+      "id": "db874b8b-b385-4755-a319-28b4013a6b3d",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "jsCode": "let rawText = \"\";\n\n// Case 1: current item already contains the message object\nif ($json.content?.[0]?.text) {\n  rawText = $json.content[0].text;\n}\n\n// Case 2: your posted structure: [[{...}]]\nelse if (Array.isArray($json) && $json[0]?.[0]?.content?.[0]?.text) {\n  rawText = $json[0][0].content[0].text;\n}\n\n// Case 3: fallback - search deeply for first output_text.text\nelse {\n  const findText = (obj) => {\n    if (!obj) return null;\n\n    if (Array.isArray(obj)) {\n      for (const item of obj) {\n        const found = findText(item);\n        if (found) return found;\n      }\n      return null;\n    }\n\n    if (typeof obj === \"object\") {\n      if (obj.type === \"output_text\" && typeof obj.text === \"string\") {\n        return obj.text;\n      }\n\n      for (const key of Object.keys(obj)) {\n        const found = findText(obj[key]);\n        if (found) return found;\n      }\n    }\n\n    return null;\n  };\n\n  rawText = findText($json) || \"\";\n}\n\nif (!rawText) {\n  throw new Error(\"No output_text found in input\");\n}\n\n// Remove markdown code fences\nconst cleaned = rawText\n  .replace(/^```json\\s*/i, \"\")\n  .replace(/^```\\s*/i, \"\")\n  .replace(/\\s*```$/i, \"\")\n  .trim();\n\nlet parsed;\ntry {\n  parsed = JSON.parse(cleaned);\n} catch (error) {\n  throw new Error(\n    \"Failed to parse JSON. Cleaned text was: \" + cleaned\n  );\n}\n\nreturn [\n  {\n    json: parsed\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        -1456
+      ],
+      "id": "655c7ccb-d03c-42a7-9660-76fe7f8450f2",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "jsCode": "let rawText = \"\";\n\n// Case 1: current item already contains the message object\nif ($json.content?.[0]?.text) {\n  rawText = $json.content[0].text;\n}\n\n// Case 2: your posted structure: [[{...}]]\nelse if (Array.isArray($json) && $json[0]?.[0]?.content?.[0]?.text) {\n  rawText = $json[0][0].content[0].text;\n}\n\n// Case 3: fallback - search deeply for first output_text.text\nelse {\n  const findText = (obj) => {\n    if (!obj) return null;\n\n    if (Array.isArray(obj)) {\n      for (const item of obj) {\n        const found = findText(item);\n        if (found) return found;\n      }\n      return null;\n    }\n\n    if (typeof obj === \"object\") {\n      if (obj.type === \"output_text\" && typeof obj.text === \"string\") {\n        return obj.text;\n      }\n\n      for (const key of Object.keys(obj)) {\n        const found = findText(obj[key]);\n        if (found) return found;\n      }\n    }\n\n    return null;\n  };\n\n  rawText = findText($json) || \"\";\n}\n\nif (!rawText) {\n  throw new Error(\"No output_text found in input\");\n}\n\n// Remove markdown code fences\nconst cleaned = rawText\n  .replace(/^```json\\s*/i, \"\")\n  .replace(/^```\\s*/i, \"\")\n  .replace(/\\s*```$/i, \"\")\n  .trim();\n\nlet parsed;\ntry {\n  parsed = JSON.parse(cleaned);\n} catch (error) {\n  throw new Error(\n    \"Failed to parse JSON. Cleaned text was: \" + cleaned\n  );\n}\n\nreturn [\n  {\n    json: parsed\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        -1248
+      ],
+      "id": "3b1f17f4-a586-4e1a-b26d-a2f9fed0af7b",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"product_image_url\": \"https://cdn.shopify.com/s/files/1/0942/5967/5518/files/Sb58c5a18ac6c424fabb967f2240cd2a7L_jpg_960x960q75_jpg.avif?v=1774949498\",\n  \"candidate_product_image_url\": \"https://cdn.shopify.com/s/files/1/0942/5967/5518/files/S21b3ba0ee3634e25be24c9da2ba597afa_jpg_220x220q75_jpg.avif?v=1774949498\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -144,
+        -1456
+      ],
+      "id": "c823855b-a591-4cad-95ae-1008b9f97833",
+      "name": "Image URLs"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "text": "Compare these two images.\n\nStep 1:\nDetermine if the main product from image 1 is present anywhere in image 2.\n\nStep 2:\nIf it is present, determine if it is EXACTLY the same product (not just similar).\n\nCarefully analyze:\n- shape and structure\n- color and finish\n- number and placement of components (e.g., cameras, buttons, sensors)\n- branding / logos\n- accessories or included parts\n- mounting system / brackets\n- proportions and design details\n\nFor each category, determine whether they match.\n\nRules:\n- Ignore background, lighting, shadows, and camera angle.\n- Ignore image quality differences.\n- If multiple products appear, focus on whether the product from image 1 exists in image 2.\n- If unsure, set values conservatively (false + lower confidence).\n- \"exact_same_product\" can only be true if ALL important visible details match.\n\nReturn ONLY valid JSON with this exact structure:\n\n{\n  \"exact_same_product\": true,\n  \"confidence\": 0.93,\n  \"reasoning\": \"Short explanation\",\n  \"visible_differences\": [\"difference 1\", \"difference 2\"],\n  \"analysis\": {\n    \"same_shape\": true,\n    \"same_color\": true,\n    \"same_components\": true,\n    \"same_branding\": true,\n    \"same_accessories\": true,\n    \"same_mounting\": true,\n    \"same_proportions\": true,\n    \"notes\": \"Short optional note\"\n  }\n}",
+        "imageUrls": "={{ $json.product_image_url }},{{ $json.candidate_product_image_url }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        80,
+        -1248
+      ],
+      "id": "85c81e4f-4ce5-4029-a286-3ace828496f9",
+      "name": "Analyze image GPT-4o",
+      "credentials": {
+        "openAiApi": {
+          "id": "6Qc88CCsFZJmM9Kw",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "text": "Compare these two images.\n\nStep 1:\nDetermine if the main product from image 1 is present anywhere in image 2.\n\nStep 2:\nIf it is present, determine if it is EXACTLY the same product (not just similar).\n\nCarefully analyze:\n- shape and structure\n- color and finish\n- number and placement of components (e.g., cameras, buttons, sensors)\n- branding / logos\n- accessories or included parts\n- mounting system / brackets\n- proportions and design details\n\nFor each category, determine whether they match.\n\nRules:\n- Ignore background, lighting, shadows, and camera angle.\n- Ignore image quality differences.\n- If multiple products appear, focus on whether the product from image 1 exists in image 2.\n- If unsure, set values conservatively (false + lower confidence).\n- \"exact_same_product\" can only be true if ALL important visible details match.\n\nReturn ONLY valid JSON with this exact structure:\n\n{\n  \"exact_same_product\": true,\n  \"confidence\": 0.93,\n  \"reasoning\": \"Short explanation\",\n  \"visible_differences\": [\"difference 1\", \"difference 2\"],\n  \"analysis\": {\n    \"same_shape\": true,\n    \"same_color\": true,\n    \"same_components\": true,\n    \"same_branding\": true,\n    \"same_accessories\": true,\n    \"same_mounting\": true,\n    \"same_proportions\": true,\n    \"notes\": \"Short optional note\"\n  }\n}",
+        "imageUrls": "={{ $json.product_image_url }},{{ $json.candidate_product_image_url }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        80,
+        -1456
+      ],
+      "id": "f72a9c6e-8a93-4b8a-acfd-7814ffe91c43",
+      "name": "Analyze image GPT-4o-mini",
+      "credentials": {
+        "openAiApi": {
+          "id": "6Qc88CCsFZJmM9Kw",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  const j = item.json;\n\n  const title =\n    j.ogTitle ||\n    j.twitterTitle ||\n    j.h1Title ||\n    j.pageTitle ||\n    \"\";\n\n  const description =\n    j.ogDescription ||\n    j.metaDescription ||\n    j.itempropDescription ||\n    \"\";\n\n  const imageUrls = [\n    j.ogImage,\n    j.twitterImage,\n    j.mainImage,\n  ].filter(Boolean);\n\n  return {\n    json: {\n      ...j,\n      product_title: String(title).trim(),\n      product_description: String(description).trim(),\n      image_urls: [...new Set(imageUrls.map(x => String(x).trim()))],\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -208,
+        -256
+      ],
+      "id": "4b5fcb4f-62fe-4a0b-aae0-9ee260e7c923",
+      "name": "Code in JavaScript3"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        1552,
+        1184
+      ],
+      "id": "d4d7006d-93b1-44f2-9a09-d03d8fe3c2dc",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  let parsedLinks = [];\n\n  try {\n    parsedLinks = JSON.parse(item.json.media_links);\n  } catch (error) {\n    parsedLinks = [];\n  }\n\n  return {\n    json: {\n      ...item.json,\n      media_links: parsedLinks\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2816,
+        1920
+      ],
+      "id": "6329e457-625e-404b-ad92-fca8953ca99c",
+      "name": "string to array for image links"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Set Document ID').item.json.document_url }}",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Main",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2640,
+        1920
+      ],
+      "id": "31e1229b-0d48-45c9-b96f-9505a8ccd26d",
+      "name": "Get Product DATA",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "LH5bLTS6ht9DHYPv",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1ZVqLojMY9SC-3xWVxs5C-HeviS6dSW5gdoe-yh03L7I",
+          "mode": "list",
+          "cachedResultName": "products",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZVqLojMY9SC-3xWVxs5C-HeviS6dSW5gdoe-yh03L7I/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Products",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ZVqLojMY9SC-3xWVxs5C-HeviS6dSW5gdoe-yh03L7I/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Drive Sheets link": "={{ $('Get Product DATA').item.json['Drive Sheets link'] }}",
+            "shopify_gid": "={{ $json.data.productCreate.product.id }}",
+            "product_title": "={{ $json.data.productCreate.product.title }}"
+          },
+          "matchingColumns": [
+            "product_title"
+          ],
+          "schema": [
+            {
+              "id": "Drive Folder link",
+              "displayName": "Drive Folder link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Drive Sheets link",
+              "displayName": "Drive Sheets link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "shopify_gid",
+              "displayName": "shopify_gid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "product_title",
+              "displayName": "product_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "description_html",
+              "displayName": "description_html",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "template_suffix",
+              "displayName": "template_suffix",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "price",
+              "displayName": "price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "compare_at_price",
+              "displayName": "compare_at_price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "media_links",
+              "displayName": "media_links",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "beneficiu_1",
+              "displayName": "beneficiu_1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "beneficiu_2",
+              "displayName": "beneficiu_2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "beneficiu_3",
+              "displayName": "beneficiu_3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "beneficiu_4",
+              "displayName": "beneficiu_4",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "section_1_title",
+              "displayName": "section_1_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "section_1_description",
+              "displayName": "section_1_description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "section_2_title",
+              "displayName": "section_2_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "section_2_description",
+              "displayName": "section_2_description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "section_3_title",
+              "displayName": "section_3_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "section_3_description",
+              "displayName": "section_3_description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rev_1_text",
+              "displayName": "rev_1_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rev_1_name",
+              "displayName": "rev_1_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rev_2_text",
+              "displayName": "rev_2_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rev_2_name",
+              "displayName": "rev_2_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rev_3_text",
+              "displayName": "rev_3_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rev_3_name ",
+              "displayName": "rev_3_name ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rev_4_text",
+              "displayName": "rev_4_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rev_4_name",
+              "displayName": "rev_4_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rev_5_text",
+              "displayName": "rev_5_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rev_5_name",
+              "displayName": "rev_5_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "faq_1_q",
+              "displayName": "faq_1_q",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "faq_1_a",
+              "displayName": "faq_1_a",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "faq_2_q",
+              "displayName": "faq_2_q",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "faq_2_a",
+              "displayName": "faq_2_a",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "faq_3_a",
+              "displayName": "faq_3_a",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "faq_4_q",
+              "displayName": "faq_4_q",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "faq_4_a",
+              "displayName": "faq_4_a",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rev_1_img",
+              "displayName": "rev_1_img",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rev_2_img",
+              "displayName": "rev_2_img",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rev_3_img",
+              "displayName": "rev_3_img",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rev_4_img",
+              "displayName": "rev_4_img",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rev_5_img",
+              "displayName": "rev_5_img",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "section_1_image",
+              "displayName": "section_1_image",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "section_2_image",
+              "displayName": "section_2_image",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "section_3_image",
+              "displayName": "section_3_image",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "rev_3_name",
+              "displayName": "rev_3_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "faq_3_q",
+              "displayName": "faq_3_q",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3008,
+        2144
+      ],
+      "id": "26a40a47-e7e1-44b3-8347-17a6104aa2d3",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "LH5bLTS6ht9DHYPv",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# Scrape product pages for data.",
+        "height": 752,
+        "width": 1680,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1504,
+        1024
+      ],
+      "typeVersion": 1,
+      "id": "b58069fe-d060-4434-930f-5ca4717ddb7d",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "operation": "scrape",
+        "url": "={{ $json.URLS }}",
+        "scrapeOptions": {
+          "options": {
+            "formats": {
+              "format": [
+                {
+                  "type": "json",
+                  "prompt": "You are extracting data from a product page. Extract the following information\n\nProduct Title\nProduct Description\nSpecifications\nExtract all product image URLs from the page\n\nOutput Requirements:\nReturn only valid JSON.\n\nExpected JSON structure:\n{\n  \"title\": \"\",\n  \"description\": \"\",\n  \"specifications\": {},\n  \"reviews\": [\n    {\n      \"name\": \"\",\n      \"rating\": \"\",\n      \"text\": \"\",\n      \"date\": \"\"\n    }\n  ],\n  \"review_images\": [],\n  \"product_images\": []\n}",
+                  "schema": "{\n  \"title\": \"\",\n  \"description\": \"\",\n  \"specifications\": [],\n  \"product_images\": []\n}"
+                },
+                {
+                  "type": "links"
+                }
+              ]
+            },
+            "headers": {},
+            "waitFor": 60000,
+            "timeout": 300000,
+            "actions": {
+              "items": [
+                {}
+              ]
+            }
+          }
+        },
+        "requestOptions": {}
+      },
+      "type": "@mendable/n8n-nodes-firecrawl.firecrawl",
+      "typeVersion": 1,
+      "position": [
+        2192,
+        1184
+      ],
+      "id": "8273627b-4a4a-4809-b266-cad6a84eedee",
+      "name": "/scrape",
+      "credentials": {
+        "firecrawlApi": {
+          "id": "9X1RgGDd7DHTvqTC",
+          "name": "Firecrawl account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.first().json.links.map(link => ({ json: { url: link } }));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1392,
+        -400
+      ],
+      "id": "738b6a8c-b024-490a-a7df-46fa284cf07f",
+      "name": "Code in JavaScript5"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n    \"links\": [\n        \"https://www.shopu.ro/drujba-electrica-campion-pro-professional-3000-w-4500-rpm-300-mm-15-m-s-ungere-automata-pornire-lenta-cadou-trusa-chei-46-piese?gad_source=1&gad_campaignid=17876539088&gbraid=0AAAAAoepNjbIyzbedhRvlI-asHprFW1t8&gclid=Cj0KCQjwp7jOBhDGARIsABe7C4fE5dv-8AjXKkXxxC2zoNx-wqqceXND79yXRMALb7V7CIzIuWsFO0EaAo2oEALw_wcB\",\n        \"https://www.emag.ro/drujba-electrica-campion-pro-professional-3000-w-4500-rpm-300-mm-15-m-s-ungere-automata-pornire-lenta-6427679302930/pd/D823R32BM/?cmpid=148158&utm_source=google&utm_medium=cpc&utm_campaign=(RO:eMAG!)_3P_NO_SALES_%3e_Gradinarit&utm_content=76859410237&gad_source=1&gad_campaignid=2087868397&gbraid=0AAAAACvmxQhcd7kQOBnIp1rv7_I5PdCVx&gclid=Cj0KCQjwp7jOBhDGARIsABe7C4eUy1aeYlcJqxqvuvA4BqxIXmoCP0YJYemGx6rKbgPDfI1yKAXbA9IaAmLcEALw_wcB\",\n        \"https://www.okazii.ro/drujba-electrica-campion-pro-professional-3000-w-4500-rpm-300-mm-15-m-s-ungere-automata-pornire-lenta-a262504169?utm_source=google&utm_medium=cpc&utm_campaign=Performance_Max%20Over%20AOV&cmp=no-sp&gad_source=1&gad_campaignid=20867958120&gbraid=0AAAAADwS0YRA7Ib75GZ4zNufGKnMzFnAm&gclid=Cj0KCQjwp7jOBhDGARIsABe7C4e4IjTZxdMWM1EKoWs1R8op95E6bgUmUVppGCsvCtPFWBsiL3ZoAnUaArbSEALw_wcB\",\n        \"https://www.laky.ro/drujba-electrica-3000w-4500rpm-300mm-15-m-s-ungere-automata-pornire-lenta-campion-professional.html?gad_source=1&gad_campaignid=21322592350&gbraid=0AAAAAqewxQ0tFp13EHtVQNT1a32spoIGj&gclid=Cj0KCQjwp7jOBhDGARIsABe7C4e1OJ-oCGe6fowNTSqthlp7JRs-gASgOGhizOpsPHA602QBv23JtuwaAgxzEALw_wcB\",\n        \"https://www.shopu.ro/drujba-electrica-campion-pro-professional-3000-w-4500-rpm-300-mm-15-m-s-ungere-automata-pornire-lenta?gad_source=1&gad_campaignid=21323088427&gbraid=0AAAAAoepNjYiNlr8IH3rqZDsbLdGeR2n9&gclid=Cj0KCQjwp7jOBhDGARIsABe7C4f-WX8ba2fd87E56XED-_HuH6WN8U2RINFFhl9VbbLB32CjeuUMXwIaArpQEALw_wcB\",\n        \"https://www.scule365.ro/cumpara/drujba-electrica-3000w-4500rpm-300mm-15-m-s-ungere-automata-pornire-30600\",\n        \"https://ogorultau.ro/p/fierastraul-electric-cu-lant-ural-cmp-lama-30-cm-3000w-4500-rpm-pompita-pentru-ungere-lant/\"\n    ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1184,
+        -400
+      ],
+      "id": "4d412209-67ac-4314-9c71-c731118a590e",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "={{ $('Set Document ID').item.json.document_url }}",
+          "__regex": "https:\\/\\/(?:drive|docs)\\.google\\.com(?:\\/.*|)\\/d\\/([0-9a-zA-Z\\-_]+)(?:\\/.*|)"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "URLs",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": 0,
+            "title": "={{ $json.output.product_title }}",
+            "description": "={{ $json.output.product_description }}",
+            "images": "={{ $json.output.product_image_links }}",
+            "URLS": "={{ $('Get Product page URLs').item.json.URLS }}"
+          },
+          "matchingColumns": [
+            "URLS"
+          ],
+          "schema": [
+            {
+              "id": "URLS",
+              "displayName": "URLS",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "title",
+              "displayName": "title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "images",
+              "displayName": "images",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "output",
+              "displayName": "output",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2752,
+        1184
+      ],
+      "id": "7fd1152e-b7c4-4bb3-8e56-ccbb6dfcf9c7",
+      "name": "Update URLs title/description/images",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "LH5bLTS6ht9DHYPv",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $json.document_url }}",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "URLs",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1968,
+        1184
+      ],
+      "id": "8ffcb10b-ad46-4aa2-89ff-c3f0ddecf4bd",
+      "name": "Get Product page URLs",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "LH5bLTS6ht9DHYPv",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"document_url\": \"https://docs.google.com/spreadsheets/d/1hMewhsG4zlW3RzJyG6uBaswFxfD5hm1TV0BIJyzdYB8/edit?gid=1004466314#gid=1004466314\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1744,
+        1184
+      ],
+      "id": "cb1e4d25-1e6b-4cda-a389-b2e1eb065a98",
+      "name": "Set Document ID"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {
+          "webSearch": {
+            "searchContextSize": "high"
+          }
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        2368,
+        1248
+      ],
+      "id": "0e8278bf-0a21-4570-b87b-7172e175d12d",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "6Qc88CCsFZJmM9Kw",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"product_title\": \"Modern Living Room Sofa\",\n  \"product_description\": \"A modern sofa designed for stylish living spaces.\",\n  \"product_image_links\": [\n    \"https://example.com/image1.jpg\",\n    \"https://example.com/image2.webp\"\n  ]\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2464,
+        1248
+      ],
+      "id": "057e18e3-204a-4000-893c-5a50d1860ccf",
+      "name": "Json Output Parser"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Extract the product title, product description with all specifications and details and specifications, and product image links.\n\nReturn the result in the following JSON format:\n\n{\n  \"product_title\": \"\",\n  \"product_description\": \"\",\n  \"product_image_links\": []\n}\n\nRules:\n- Return only valid JSON.\n- No extra text or explanations.\n- product_image_links must be an array of direct image URLs.\n- Remove duplicate links.\n\nDATA:\n{{ JSON.stringify($json.data) }}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        2368,
+        1072
+      ],
+      "id": "405598f1-41cc-445b-badd-a3f294ba7eac",
+      "name": "Data Extractor"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analizează următoarele date despre produs, colectate din mai multe surse.\n\nGenerează:\n\n7. Câmpuri pentru pagină (OBLIGATORIU)\n\nGenerează și completează EXACT aceste câmpuri pe baza conținutului:\ntitle – titlu de produs optimizat SEO, clar, natural, orientat spre conversie\ndescription – descriere completă a produsului în format HTML, bine structurată, gata de publicare\nbeneficiu_1 – beneficiu scurt, max 90 caractere, cu emoji și început bold\nbeneficiu_2 – beneficiu scurt, max 90 caractere, cu emoji și început bold\nbeneficiu_3 – beneficiu scurt, max 90 caractere, cu emoji și început bold\nbeneficiu_4 – beneficiu scurt, max 90 caractere, cu emoji și început bold\nsection_1_title – titlu secțiune, max 40 caractere\nsection_1_description – descriere secțiune, max 150 caractere\nsection_2_title – titlu secțiune, max 40 caractere\nsection_2_description – descriere secțiune, max 150 caractere\nsection_3_title – titlu secțiune, max 40 caractere\nsection_3_description – descriere secțiune, max 150 caractere\nrev_1_text – recenzie realistă, pozitivă\nrev_1_name – nume românesc\nrev_2_text – recenzie realistă, pozitivă\nrev_2_name – nume românesc\nrev_3_text – recenzie realistă, pozitivă\nrev_3_name – nume românesc\nrev_4_text – recenzie realistă, pozitivă\nrev_4_name – nume românesc\nrev_5_text – recenzie realistă, pozitivă\nrev_5_name – nume românesc\nfaq_1_q – întrebare esențială\nfaq_1_a – răspuns clar și util\nfaq_2_q – întrebare esențială\nfaq_2_a – răspuns clar și util\nfaq_3_q – întrebare esențială\nfaq_3_a – răspuns clar și util\nfaq_4_q – întrebare esențială\nfaq_4_a – răspuns clar și util\nDATE:\n{{ JSON.stringify($json.products) }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Responsabilitățile tale:\n1. Titlu SEO pentru produs\n\nAnalizează toate titlurile furnizate.\nExtrage cele mai importante cuvinte-cheie (brand, tip produs, putere, specificații, funcționalități).\nCreează un singur titlu optimizat SEO, cu rată mare de conversie.\nMenține-l natural, clar și fără supraîncărcare de cuvinte-cheie.\n\nStructură preferată:\nTip produs + Brand + Specificații cheie + Beneficii principale\n\nFormat obligatoriu:\n\nTitlu Produs\n\nNume produs, caracteristici principale, culoare\n\n2. Descriere completă a produsului (Html)\n\nCreează o descriere detaliată, bine structurată, scrisă în Html, optimizată pentru:\nSEO\nlizibilitate\nînțelegere AI (structurată și explicită)\n\nDescrierea TREBUIE să includă:\n\n✅ Prezentare generală a produsului\nExplicație clară despre ce este produsul și cui i se adresează\n\n✅ Caracteristici principale\nListă cu puncte forte, evidențiate clar\n\n✅ Specificații tehnice\nListă structurată (bullet points sau stil tabel)\nInclude toate specificațiile extrase (putere, dimensiuni, viteză etc.)\n\n✅ Beneficii și scenarii de utilizare\nExemple practice de utilizare\n\n✅ De ce să alegi acest produs\nElemente diferențiatoare față de alternativele generice\n\n✅ Detalii suplimentare\nSiguranță, durabilitate, materiale sau accesorii incluse (dacă sunt disponibile)\n\n3. Generarea Beneficiilor Cheie\n\nGenerează 4 beneficii:\n\nLa începutul fiecărui beneficiu adaugă un emoji reprezentativ\nPrimele 2–3 cuvinte trebuie să fie bold (ideea principală)\nFiecare beneficiu trebuie să aibă maximum 90 de caractere\nAccent pe emoție și rezolvarea unei probleme concrete\n4. Generarea Secțiunilor Elaborate\n\nCreează 3 secțiuni detaliate:\n\nFiecare secțiune trebuie să conțină:\nTitlu (max. 40 caractere)\nDescriere (max. 150 caractere)\nPot fi reinterpretări ale beneficiilor, dar nu obligatoriu\n5. Secțiunea FAQ (Întrebări și Răspunsuri)\n\nGenerează 4 întrebări și 4 răspunsuri esențiale:\n\nInclude informații tehnice, funcționalitate și detalii practice\nAjută direct la luarea deciziei de cumpărare\n6. Generarea câmpurilor pentru pagină (OBLIGATORIU)\n\nPe baza descrierii generate, completează următoarele câmpuri:\n\nbeneficiu_1\nbeneficiu_2\nbeneficiu_3\nbeneficiu_4\n\nsection_1_title\nsection_1_description\nsection_2_title\nsection_2_description\nsection_3_title\nsection_3_description\n\nrev_1_text\nrev_1_name\nrev_2_text\nrev_2_name\nrev_3_text\nrev_3_name\nrev_4_text\nrev_4_name\nrev_5_text\nrev_5_name\n\nfaq_1_q\nfaq_1_a\nfaq_2_q\nfaq_2_a\nfaq_3_q\nfaq_3_a\nfaq_4_q\nfaq_4_a\n\n7. Recenzii (Reviews)\n\nGenerează 5 recenzii:\n\nText realist, natural, orientat pe experiență\nNume românești credibile in format Nume F.\nTon pozitiv, dar autentic\nReguli generale:\n\nFolosește doar datele furnizate, dar combină-le și îmbunătățește-le inteligent\nElimină duplicatele și inconsistențele\nCorectează gramatica și folosește un stil profesional\nNU menționa surse sau URL-uri\nNU include imagini sau linkuri\nScrie într-un ton persuasiv, curat, specific eCommerce\nOutputul trebuie să fie complet, structurat și gata de utilizare"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1728,
+        1440
+      ],
+      "id": "10c50ee1-67ec-4091-b469-0f12e2f8b1c0",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Works whether input comes as:\n// 1) multiple n8n items, each with one product in item.json\n// 2) one n8n item containing an array in item.json\n\nlet products = [];\n\n// Case 1: one item contains an array\nif (items.length === 1 && Array.isArray(items[0].json)) {\n  products = items[0].json;\n}\n// Case 2: normal n8n flow: multiple items\nelse {\n  products = items.map(item => item.json);\n}\n\n// Remove unwanted fields\nconst cleanedProducts = products.map(({ images, URLS, ...rest }) => rest);\n\n// Return one single merged item\nreturn [\n  {\n    json: {\n      products: cleanedProducts\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2960,
+        1184
+      ],
+      "id": "b4d7722b-31af-46e7-a6b6-f2e8c50b078b",
+      "name": "Code in JavaScript4"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5.4",
+          "mode": "list",
+          "cachedResultName": "gpt-5.4"
+        },
+        "builtInTools": {},
+        "options": {
+          "textFormat": {
+            "textOptions": {
+              "type": "json_object",
+              "verbosity": "high"
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1728,
+        1632
+      ],
+      "id": "859885a1-02c6-4497-bd41-cf1aa0d4fd77",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "6Qc88CCsFZJmM9Kw",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"product_title\": \"\",\n  \"description_html\": \"\",\n\n  \"beneficiu_1\": \"\",\n  \"beneficiu_2\": \"\",\n  \"beneficiu_3\": \"\",\n  \"beneficiu_4\": \"\",\n\n  \"section_1_title\": \"\",\n  \"section_1_description\": \"\",\n  \"section_2_title\": \"\",\n  \"section_2_description\": \"\",\n  \"section_3_title\": \"\",\n  \"section_3_description\": \"\",\n\n  \"rev_1_text\": \"\",\n  \"rev_1_name\": \"\",\n  \"rev_2_text\": \"\",\n  \"rev_2_name\": \"\",\n  \"rev_3_text\": \"\",\n  \"rev_3_name\": \"\",\n  \"rev_4_text\": \"\",\n  \"rev_4_name\": \"\",\n  \"rev_5_text\": \"\",\n  \"rev_5_name\": \"\",\n\n  \"faq_1_q\": \"\",\n  \"faq_1_a\": \"\",\n  \"faq_2_q\": \"\",\n  \"faq_2_a\": \"\",\n  \"faq_3_q\": \"\",\n  \"faq_3_a\": \"\",\n  \"faq_4_q\": \"\",\n  \"faq_4_a\": \"\"\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1840,
+        1632
+      ],
+      "id": "5af491c9-cfa5-4db8-9f2a-3a469c8b6f80",
+      "name": "Structured Output Parser",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $('Set Document ID').item.json.document_url }}",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Main",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "Drive Folder link"
+          ],
+          "schema": [
+            {
+              "id": "Drive Folder link",
+              "displayName": "Drive Folder link",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "shopify_gid",
+              "displayName": "shopify_gid",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "product_title",
+              "displayName": "product_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "description_html",
+              "displayName": "description_html",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "template_suffix",
+              "displayName": "template_suffix",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "price",
+              "displayName": "price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "compare_at_price",
+              "displayName": "compare_at_price",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "media_links",
+              "displayName": "media_links",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "beneficiu_1",
+              "displayName": "beneficiu_1",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "beneficiu_2",
+              "displayName": "beneficiu_2",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "beneficiu_3",
+              "displayName": "beneficiu_3",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "beneficiu_4",
+              "displayName": "beneficiu_4",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "section_1_title",
+              "displayName": "section_1_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "section_1_description",
+              "displayName": "section_1_description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "section_2_title",
+              "displayName": "section_2_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "section_2_description",
+              "displayName": "section_2_description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "section_3_title",
+              "displayName": "section_3_title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "section_3_description",
+              "displayName": "section_3_description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rev_1_text",
+              "displayName": "rev_1_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rev_1_name",
+              "displayName": "rev_1_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rev_2_text",
+              "displayName": "rev_2_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rev_2_name",
+              "displayName": "rev_2_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rev_3_text",
+              "displayName": "rev_3_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rev_3_name",
+              "displayName": "rev_3_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rev_4_text",
+              "displayName": "rev_4_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rev_4_name",
+              "displayName": "rev_4_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rev_5_text",
+              "displayName": "rev_5_text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rev_5_name",
+              "displayName": "rev_5_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "faq_1_q",
+              "displayName": "faq_1_q",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "faq_1_a",
+              "displayName": "faq_1_a",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "faq_2_q",
+              "displayName": "faq_2_q",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "faq_2_a",
+              "displayName": "faq_2_a",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "faq_3_q",
+              "displayName": "faq_3_q",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "faq_3_a",
+              "displayName": "faq_3_a",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "faq_4_q",
+              "displayName": "faq_4_q",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "faq_4_a",
+              "displayName": "faq_4_a",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rev_1_img",
+              "displayName": "rev_1_img",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rev_2_img",
+              "displayName": "rev_2_img",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rev_3_img",
+              "displayName": "rev_3_img",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rev_4_img",
+              "displayName": "rev_4_img",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "rev_5_img",
+              "displayName": "rev_5_img",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "section_1_image",
+              "displayName": "section_1_image",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "section_2_image",
+              "displayName": "section_2_image",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "section_3_image",
+              "displayName": "section_3_image",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2800,
+        1440
+      ],
+      "id": "4e8f3602-2027-4f6a-a837-88e9c9e01a05",
+      "name": "Update row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "LH5bLTS6ht9DHYPv",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n  return {\n    json: {\n      ...item.json.output,\n      \"Drive Folder link\": \"\"\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2064,
+        1440
+      ],
+      "id": "e705d9ab-02e9-43d6-bcca-f338bf1738a0",
+      "name": "Code in JavaScript6"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "={{ $('Set Document ID').item.json.document_url }}",
+          "__regex": "https:\\/\\/(?:drive|docs)\\.google\\.com(?:\\/.*|)\\/d\\/([0-9a-zA-Z\\-_]+)(?:\\/.*|)"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Main",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2208,
+        1568
+      ],
+      "id": "e626f6c5-a68a-445c-81cd-e311db5e9112",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "LH5bLTS6ht9DHYPv",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "Drive Folder link",
+        "joinMode": "keepEverything",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2352,
+        1440
+      ],
+      "id": "bc891874-d89c-4161-98c3-2cde6c689a62",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "const originalItem = $items(\"Code in JavaScript6\", 0, 0)[0].json;\nconst sheetItem = $items(\"Get row(s) in sheet\", 0, 0)[0].json;\n\nreturn [\n  {\n    json: {\n      ...originalItem,\n      \"Drive Folder link\": sheetItem[\"Drive Folder link\"] ?? \"\"\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2560,
+        1440
+      ],
+      "id": "532da529-8e2f-43ba-bda8-62a5a90dbfd6",
+      "name": "Code in JavaScript7"
+    }
+  ],
+  "connections": {
+    "Prepare Metafield batch update": {
+      "main": [
+        [
+          {
+            "node": "Set Metafields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Images": {
+      "main": [
+        [
+          {
+            "node": "Set Variables JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Serper search": {
+      "main": [
+        [
+          {
+            "node": "format results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "format results": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create folder": {
+      "main": [
+        [
+          {
+            "node": "Move Sheet file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create New Sheet": {
+      "main": [
+        [
+          {
+            "node": "Create folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Columns": {
+      "main": [
+        [
+          {
+            "node": "clean first row after column",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Move Sheet file": {
+      "main": [
+        [
+          {
+            "node": "Sheet headers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sheet headers": {
+      "main": [
+        [
+          {
+            "node": "Create Columns",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "clean first row after column": {
+      "main": [
+        [
+          {
+            "node": "Serper search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "set price and compare at price": {
+      "main": [
+        [
+          {
+            "node": "Prepare Metafield batch update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Initial data": {
+      "main": [
+        [
+          {
+            "node": "Create New Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Product": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "set price and compare at price",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Variables JSON": {
+      "main": [
+        []
+      ]
+    },
+    "Image URLs": {
+      "main": [
+        [
+          {
+            "node": "Analyze image GPT-4o-mini",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Analyze image GPT-4o",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze image GPT-4o": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze image GPT-4o-mini": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript3": {
+      "main": [
+        []
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Set Document ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "string to array for image links": {
+      "main": [
+        [
+          {
+            "node": "Create Product",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Product DATA": {
+      "main": [
+        [
+          {
+            "node": "string to array for image links",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet": {
+      "main": [
+        []
+      ]
+    },
+    "/scrape": {
+      "main": [
+        [
+          {
+            "node": "Data Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript5": {
+      "main": [
+        []
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update URLs title/description/images": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Product page URLs": {
+      "main": [
+        [
+          {
+            "node": "/scrape",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Document ID": {
+      "main": [
+        [
+          {
+            "node": "Get Product page URLs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Data Extractor",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Json Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Json Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Data Extractor",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Extractor": {
+      "main": [
+        [
+          {
+            "node": "Update URLs title/description/images",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript4": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Get Product DATA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript6": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript7": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {
+    "Serper search": [
+      {
+        "searchParameters": {
+          "type": "lens",
+          "num": 100,
+          "page": 1,
+          "url": "https://s13emagst.akamaized.net/products/114248/114247192/images/res_a8501836cf8072411906c36e707e26c9.png",
+          "engine": "google"
+        },
+        "organic": [
+          {
+            "title": "3L ABS Plastic Beer Tower Dispenser with LED Lights Summer Juice Drinks Container for Home Bar KTV Drinks Dispenser - AliExpress",
+            "source": "AliExpress",
+            "link": "https://www.aliexpress.com/i/1005008876919968.html",
+            "imageUrl": "https://ae01.alicdn.com/kf/A35055c8d64ee43b8998cff895f19ee9aW.jpg",
+            "thumbnailUrl": "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcR7lNO7iaiZZJz_OAh5FnKDcIEeFeTGUvkRrLmHh2tskjTgpYQS"
+          },
+          {
+            "title": "Amazon.com: BRIGHTFUFU Beer Tap Brush Black 3l Draft Beer Tower Led Lights Easy Cleaning Beverage Dispenser for Home : Industrial & Scientific",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/BRIGHTFUFU-Lights-Cleaning-Beverage-Dispenser/dp/B0F2J8Z19S",
+            "imageUrl": "https://m.media-amazon.com/images/I/51Jev95GQaL._AC_UF894,1000_QL80_.jpg",
+            "thumbnailUrl": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcTy4joMJ2NRBtBwtzZGyYKQEtGeCmzuEs2bQ1vcUdlmbaYg3rj_"
+          },
+          {
+            "title": "simhoa Beer Dispenser with Colorful LED Light Iced Tea Cola Dispenser for Event Bar - Walmart.ca",
+            "source": "Walmart",
+            "link": "https://www.walmart.ca/en/ip/simhoa-Beer-Dispenser-with-Colorful-LED-Light-Iced-Tea-Cola-Dispenser-for-Event-Bar/4USN2F42A07Q",
+            "imageUrl": "https://i5.walmartimages.com/asr/5c26ed38-dd6c-490e-a059-6d1943809efb.8b8119edb4c278d9b510c8270d3d1489.jpeg",
+            "thumbnailUrl": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcQqBFwGw0E0kGxRfa6_hyqT56I17OKuEhklT62zAqy8Gtw_Pbsl"
+          },
+          {
+            "title": "Glowing Drink Dispenser with Tap Beer Tower Versatile Drinks Dispenser for Bar - Walmart.com",
+            "source": "Walmart",
+            "link": "https://www.walmart.com/ip/Glowing-Drink-Dispenser-with-Tap-Beer-Tower-Versatile-Drinks-Dispenser-for-Bar/5365596267",
+            "imageUrl": "https://i5.walmartimages.com/asr/87ce337a-c83f-4e43-b7d1-f885c6226e31.d684761737ffa5f9360ccd9f46aaaa95.jpeg",
+            "thumbnailUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSwPN3qoZvFZ_RnBgzgwSnCTkRpxAunyCgFdXeC0ntfgPsfYaen"
+          },
+          {
+            "title": "Amazon.com: CHENYUEFA Dispensador de cerveza para bar, dispensador de bebidas para fiestas, bufé, máquina de bebidas, torre de cerveza, dispensador de bebidas, accesorios de bar para el hogar, 1.5L/2L/3L para : Industrial",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/-/es/CHENYUEFA-Dispensador-cerveza-dispensador-accesorios/dp/B0CX89PSJX",
+            "imageUrl": "https://m.media-amazon.com/images/I/215fIDQGEfL.jpg",
+            "thumbnailUrl": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcQqo9QDTpd_SJjJwJQ8T0HUlFLt9YaVd0eVFuycSphtscFPNxGs"
+          },
+          {
+            "title": "Bluetooth luminous draft beer keg 3L wine cannon beer keg wine set Internet celebrity draft beer dispenser - AliExpress 15",
+            "source": "AliExpress",
+            "link": "https://www.aliexpress.com/item/1005008988618940.html",
+            "imageUrl": "https://ae01.alicdn.com/kf/Sa97c747d99ad47b380678b6f481d7ea2U.jpg_960x960.jpg",
+            "thumbnailUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQLsIQQMmA3Wo66iVzyD_kElgwj8wTeIb70MP44EQc1K5s4v9uv"
+          },
+          {
+            "title": "3L/101.45oz Triple Faucets Beer Dispenser Rose Gold Beer Dispenser For KTV, BBQs | eBay",
+            "source": "eBay",
+            "link": "https://www.ebay.com/itm/406443759474",
+            "imageUrl": "https://i.ebayimg.com/images/g/ECAAAeSwYqtoa2op/s-l400.jpg",
+            "thumbnailUrl": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcRXFQMGWKoWB6z8BqMRRF7zec5mZYwrmIfdCCl-TDFlYyIAjWpD"
+          },
+          {
+            "title": "Bierspender mit farbenfrohen LED LED Light Juice Eced Kaffeespender für | eBay.de",
+            "source": "eBay.de",
+            "link": "https://www.ebay.de/itm/146451476517",
+            "imageUrl": "https://i.ebayimg.com/images/g/A-0AAeSwK6Rn1TIv/s-l1200.jpg",
+            "thumbnailUrl": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcRviZQ4rwrXi-HgLNJrAXOCJu2gDRxSC7nchUSoYr1is9S7sPB3"
+          },
+          {
+            "title": "Winston Porter Nuttall 640 Oz. Beverage Dispenser | Wayfair",
+            "source": "Wayfair",
+            "link": "https://www.wayfair.com/kitchen-tabletop/pdp/winston-porter-nuttall-640-oz-beverage-dispenser-w000455955.html",
+            "imageUrl": "https://assets.wfcdn.com/im/52365070/resize-h400-w400^compr-r85/6704/67049199/Nuttall+3+-+Piece+Beverage+Dispenser+Set.jpg",
+            "thumbnailUrl": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcQ2IcRK-enLZ-8hL6G3fuSY4hC4lYrHbPawdXCsZBfOYL-U7GXn"
+          },
+          {
+            "title": "Amazon.com: Muloo Dispensador de bebidas brillante con torre de bebidas de grifo, dispensador de bebidas versátil, perfecto para fiestas de bar y reuniones al aire libre : Hogar y Cocina",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/-/es/Dispensador-brillante-dispensador-versátil-reuniones/dp/B0D2CQTZ46",
+            "imageUrl": "https://m.media-amazon.com/images/I/51aXjp9r2vL._AC_UF894,1000_QL80_.jpg",
+            "thumbnailUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSRa3SVte5F63gHJ5F-OhrdyTl08kHzVwqotXnXYUKNTa9R-fhU"
+          },
+          {
+            "title": "Amazon.com: CukUJH Beer Bucket 3L Beer Dispenser, Transparent Beverage Juice Wine Dispenser, Suitable for Bars, Parties, Restaurants(Red) : Home & Kitchen",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/Dispenser-Transparent-Beverage-Suitable-Restaurants/dp/B0DBDGBT7P",
+            "imageUrl": "https://m.media-amazon.com/images/I/51ESnNYNMvL.jpg",
+            "thumbnailUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSOJTD-sb4hh7_hZPcd_mqIG9NW8pw9kd1BM8-h0JENHqvgnkqU"
+          },
+          {
+            "title": "Amazon.com: Muloo Glowing Drink Dispenser with Tap Drinks Tower Versatile Drinks Dispenser Perfect for Bar Party and Outdoor Gatherings : Home & Kitchen",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/Muloo-Glowing-Dispenser-Versatile-Gatherings/dp/B0D2CQTZ46",
+            "imageUrl": "https://m.media-amazon.com/images/I/51hHuL9IJwL._AC_UF350,350_QL80_.jpg",
+            "thumbnailUrl": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcRQDDtPyD1b2TfMYjcX4YiDNGcMtbYX3kIvYHluB3uhG174HAtC"
+          },
+          {
+            "title": "Amazon.com: Beer Tower Dispenser, Drink Dispenser Drinks Dispenser for Parties Beer Tower Dispenser With 3 Taps And Freeze Tube 3L Clear Drink Dispenser Plastic Beverage Dispenser Comes With Stand, Spigot, Ice Co :",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/-/he/218945/dp/B0CQNLHW4F",
+            "imageUrl": "https://m.media-amazon.com/images/I/41bfXGU4egL._AC_UF894,1000_QL80_.jpg",
+            "thumbnailUrl": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcRr8jHtIBxEnZGJLs-v9m3l0nnSBmdljNuh7gqG1Jz6QRlBGLox"
+          },
+          {
+            "title": "Amazon.com | Beer tower Beer Tower Dispenser 3L Cold Draft Beer Tower Beverage Dispenser with Ice Tube, LED Lights and Tap for Birthday Party Bar, Orange Beer Tower Dispenser: Iced Beverage Dispensers",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/Dispenser-Beverage-Lights-Birthday-Orange/dp/B0BVRMPCN1",
+            "imageUrl": "https://m.media-amazon.com/images/I/41QmymC1O8S._AC_UF350,350_QL80_.jpg",
+            "thumbnailUrl": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcRTWpFyVr32co_cNEm7VAISsYYPF1G-2Y85gWQhuNm0VJXkBIjf"
+          },
+          {
+            "title": "Amazon.com: RABEEXP 3L Beer Tower Dispenser with Tripod Stand, Beverage Dispenser Drink Tower with 3 Taps and Freeze Tube, Draft Beer Tower Dispenser Cold Drink Beverage Beer Tower for Party, Restaurant, Bars :",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/-/he/755824160354/dp/B0CZP5FMMD",
+            "imageUrl": "https://m.media-amazon.com/images/I/6178tu1sHmL.jpg",
+            "thumbnailUrl": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcRovNzmzwOHAC7HSYktOYnmDzsnD0FeaeEAGbi9k2cs_cxw-7tY"
+          },
+          {
+            "title": "Buy In Bulk Plastic Beer Tower 3L Ice Tube Included | Alibaba.com",
+            "source": "Alibaba.com",
+            "link": "https://www.alibaba.com/showroom/plastic-beer-tower-3l.html",
+            "imageUrl": "https://s.alicdn.com/@sc04/kf/H93c72795bfab4849a3d196ba2a042493V/Modern-Design-3L-Plastic-Wine-Gun-Luminous-Draft-Beer-Barrel-for-Party-Occasions-Bluetooth-enabled-Beer-Tower.jpg_300x300.jpg",
+            "thumbnailUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRZmaSBYoMtIDywSKBMTWo4XeTBLAKSS6HbNS0tzrwMp8qvMxIm"
+          },
+          {
+            "title": "Amazon.com: TXGJWRA 1.5l Beverage Dispenser with Base Thickened Pc Bucket Drink Dispenser Beer Buffet Drink Machine Party Water Dispenser Beer,C : Home & Kitchen",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/TXGJWRA-Beverage-Dispenser-Thickened-Machine/dp/B0DST2M1X6",
+            "imageUrl": "https://m.media-amazon.com/images/I/51HAj75PdlL.jpg",
+            "thumbnailUrl": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcRRYhavt8TmySuS9Csgi5fjdxS3OnSrQpqNIpGd3nyOjIVqGBgW"
+          },
+          {
+            "title": "Amazon.com: LEIXIUSM Buffet Drink Machine Beer Tower 1.8L Clear Beverage Tower Dispenser with Included Ice Tube Beverage Dispenser(Yellow) : Industrial & Scientific",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/LEIXIUSM-Machine-Beverage-Dispenser-Included/dp/B0DP2H1Y1K",
+            "imageUrl": "https://m.media-amazon.com/images/I/311igJksqML._AC_UF894,1000_QL80_.jpg",
+            "thumbnailUrl": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcS49O6kcSeUMJ0Dpcf48jwwqToGnquG5MzicfVyMwVfvyE5ARTm"
+          },
+          {
+            "title": "Beverage dispenser with tap, ideal for spirits and outdoor events, yellow 1.5 L Ref: 6767 - Walmart.ca",
+            "source": "Walmart.ca",
+            "link": "https://www.walmart.ca/en/ip/Beverage-dispenser-with-tap-ideal-for-spirits-and-outdoor-events-yellow-1-5-L-Ref-6767/5NZVAAWX1L8K",
+            "imageUrl": "https://i5.walmartimages.com/asr/f1e42153-eea8-4891-9450-56b5d63ba74b.9e17c09c46723cff93d24b8dac56a6c3.jpeg",
+            "thumbnailUrl": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcTtmno6Yz23YbbxokRYYEmBCekNlCN5bKjVnCR5Jxo1BF1LPdk6"
+          },
+          {
+            "title": "JTRHD Beer Dispenser with Cooler Beer Tower 1.8 Litre Clear Water Dispenser with Ice Tube Perfect Party Accessory Bar Club (Color : Blue, Size : 9 x 49cm) : Amazon.com.be: Home & Kitchen",
+            "source": "Amazon.com.be",
+            "link": "https://www.amazon.com.be/-/en/JTRHD-Dispenser-Cooler-Perfect-Accessory/dp/B08XYVGJS3",
+            "imageUrl": "https://m.media-amazon.com/images/I/51VQByzS8SL._AC_UF894,1000_QL80_.jpg",
+            "thumbnailUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSnGkV8oBSUdGDVzkyaxEDaYhoDwVRj3uAoxdIXKnLO3CIxvrfO"
+          },
+          {
+            "title": "Amazon.com | Glowing Drink Dispenser with Tap Drinks Tower Versatile Drinks Dispenser for Party and Outdoor Gatherings: Iced Beverage Dispensers",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/Glowing-Dispenser-Versatile-Outdoor-Gatherings/dp/B0DHXC75D2",
+            "imageUrl": "https://m.media-amazon.com/images/I/71df3Fip-EL.jpg",
+            "thumbnailUrl": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcR-w68xSz_Bu5H15HI2ShrQ1SzYpsRwrx--YNPqN5aLDstxr1C8"
+          },
+          {
+            "title": "Amazon.com: ZTHYSHXA Beer Dispenser Beer Tower Dispenser 3L Cold Draft Beer Tower Beverage Dispenser with Ice Tube, LED Lights and Tap for Birthday Party Bar, Orange Drink Tower Beer Liquor Beverage Dispenser :",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/ZTHYSHXA-Dispenser-Beverage-Lights-Birthday/dp/B0CYM3BLFR",
+            "imageUrl": "https://m.media-amazon.com/images/I/51tNEMTVHfS._AC_UF350,350_QL80_.jpg",
+            "thumbnailUrl": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcRhG2-6T88qoQIn1HK8ZXel1duZpVgb3kv2JZPhpE2bIOgMPPbg"
+          },
+          {
+            "title": "Amazon.com | KAREHSBI Beer Tower Dispenser Beer Beverage Tower Dispenser with Ice Tube and Tap, Straight Keg Juice Tower, 1.5L/ 3L Beer Machine Tool Club Accessories, Orange Beverage Tower Dispenser: Iced Beverage",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/KAREHSBI-Dispenser-Beverage-Straight-Accessories/dp/B0CZL6MZDW",
+            "imageUrl": "https://m.media-amazon.com/images/I/41szNOpQ3CS._AC_UF894,1000_QL80_.jpg",
+            "thumbnailUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRF26Nvltk2hLA9tJ2UzX5UQjPQ1-aZ02-ZSJNjcOIOr2BePEX_"
+          },
+          {
+            "title": "Amazon.com | Domensi 6 Pcs Drink Tower Dispenser Mimosa Tower with Ice Tube and Bottomless Mimosa Lunch Beer Beverage Drink Tabletop Liquor Dispenser for Bar Party(1.5l,Yellow): Iced Beverage Dispensers",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/Domensi-Dispenser-bottomless-Beverage-Tabletop/dp/B0D4YF44VV",
+            "imageUrl": "https://m.media-amazon.com/images/I/71vGZ2WCckL._AC_UF894,1000_QL80_.jpg",
+            "thumbnailUrl": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcRjvDuisdqgrbA6cVrabsQyyGduYHAvFjuOmfjV8WaMSjbphdxq"
+          },
+          {
+            "title": "Glowing Drink Dispenser with Tap Beer Tower Versatile Drinks Dispenser for Bar - Walmart.com",
+            "source": "Walmart",
+            "link": "https://www.walmart.com/ip/Glowing-Drink-Dispenser-with-Tap-Beer-Tower-Versatile-Drinks-Dispenser-for-Bar/5362541261",
+            "imageUrl": "https://i5.walmartimages.com/asr/ab72fe61-f64e-4729-b6ab-bc0518619348.a273e8484c9760213ccb61dba0eee376.jpeg?odnHeight=768&odnWidth=768&odnBg=FFFFFF",
+            "thumbnailUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSGCMA-UWrHQtFhPybR_M2qWmpDuOgZW3zbR0YvE6tjVoQ0NETb"
+          },
+          {
+            "title": "Amazon.com | Beer Tower Dispenser 3L Cold Draft Beer Tower Beverage Dispenser with LED Lights and Ice Tube for Parties Home Bar: Iced Beverage Dispensers",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/Tower-Dispenser-Beverage-Lights-Parties/dp/B0CD2887G7",
+            "imageUrl": "https://m.media-amazon.com/images/I/61MwmGRGsBL._AC_UF894,1000_QL80_.jpg",
+            "thumbnailUrl": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcR2FbU-nzIawkW2QOpT7koIOSTVA3W6ej_zAsJWpvRWuahpOhIJ"
+          },
+          {
+            "title": "Amazon.com: DJFKDYHPE Beer Tower Drinking Beer Tower, Beer Drink Dispenser with Tap and Ice Pipe for Pub Home Self Serve Keg Party Tower Beverage Dispenser(Small) : Industrial & Scientific",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/DJFKDYHPE-Tower-Drinking-Dispenser-Beverage/dp/B0DBKNGTXK",
+            "imageUrl": "https://m.media-amazon.com/images/I/51IyazDATDL.jpg",
+            "thumbnailUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ7_MU9vY7RO85OIhGGPO-xcPTjVW_p7Efy0C5FvPE4ELvOFH2I"
+          },
+          {
+            "title": "Amazon.com: Beer Tower,Triangular Base Design Beer Tower, Drink Tower with Faucet and Removable Icicles, Commercial Tabletop Drink Tower Dispenser(Color:Silver) : Industrial & Scientific",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/Triangular-Removable-Commercial-Tabletop-Dispenser/dp/B0D5DL4TXF",
+            "imageUrl": "https://m.media-amazon.com/images/I/6136qVPvW9L.jpg",
+            "thumbnailUrl": "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcT3n4-GcGRwKAZibKVOd00DA8f0D_AWY7fa1lWE97Z8eEySoHTk"
+          },
+          {
+            "title": "Fichiouy 0.79Gal Cold and Hot Beverage Dispenser with Spigot and White Light for Beverages Tea Drinks - Walmart.com",
+            "source": "Walmart",
+            "link": "https://www.walmart.com/ip/Fichiouy-0-79Gal-Cold-and-Hot-Beverage-Dispenser-with-Spigot-and-White-Light-for-Beverages-Tea-Drinks/5466669718",
+            "imageUrl": "https://i5.walmartimages.com/asr/59b518fd-8e3d-436a-ba2f-55b03731c678.80d65676bd4855b78aeb4ca145374dad.jpeg?odnHeight=768&odnWidth=768&odnBg=FFFFFF",
+            "thumbnailUrl": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcThZyhoWJhLBCAIFKKF8MJSicLFBdqK4f5LMAK0ao_zpySE_f0D"
+          },
+          {
+            "title": "Ball Shape Beer Tower Dispenser with LED Light Ice Tube, Football Game, Colorful Bar, 3 Liters - AliExpress 15",
+            "source": "AliExpress",
+            "link": "https://www.aliexpress.com/item/32907185067.html",
+            "imageUrl": "https://ae01.alicdn.com/kf/Hb37634e0742f4a9ab0f2e8b274d0e54cD.jpg",
+            "thumbnailUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQAJZIoE-afQBo4AKcahBdsjoFbVqBB6eP7R9bApZfs_SUG-y-z"
+          },
+          {
+            "title": "Amazon.com: GXFCHYL 3L Beer Tower Dispenser with Spigot & LED Light, Plastic Beverage Dispenser Water Tea Juice Drink Dispenser for Home, Restaurant, Hotel, Party, Bar (Champagne Gold, Yellow) : Industrial & Scientific",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/GXFCHYL-Dispenser-Beverage-Restaurant-Champagne/dp/B0F48HQG35",
+            "imageUrl": "https://m.media-amazon.com/images/I/51YhRs2GxFL._AC_UF350,350_QL80_.jpg",
+            "thumbnailUrl": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcRSJ2_k3jiYJKdrHhHyKYKsSg6lJXcLl7q5K9ywkBSGv1zrGjwl"
+          },
+          {
+            "title": "Portable Bar Draft Beer Beverage Bucket 3L Plastic Beer Tower Used for Festival Parties and Outdoor Portable Dispensers| Alibaba.com",
+            "source": "Alibaba.com",
+            "link": "https://www.alibaba.com/product-detail/Portable-Bar-Draft-Beer-Beverage-Bucket_1601219876660.html",
+            "imageUrl": "https://sc04.alicdn.com/kf/Haa74a8d082164d80952c5a7db09a6702A.jpg",
+            "thumbnailUrl": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcQfKkQNFzMpBWdjqnXd7oLN0EsNFRnaaVgYnBuRfSn386NRDTy4"
+          },
+          {
+            "title": "Amazon.com: SDVantage Beer Tower Dispenser 3L High Capacity Beverage Dispenser with LED Light Tabletop Beer Tower for Beer Drink Wine Cocktail Margarita Drink Tower Dispenser，Pearl Silver : Home & Kitchen",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/SDVantage-Dispenser-Capacity-Margarita-Dispenser，Pearl/dp/B0DR5TDSL4",
+            "imageUrl": "https://m.media-amazon.com/images/I/516wThZVVVL._AC_UF894,1000_QL80_.jpg",
+            "thumbnailUrl": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcSUDcSTqIcLsSgQF5g1fDCffvim8MlQEbmqKl_qZ4EvuOK14y2q"
+          },
+          {
+            "title": "Bottles - Trade Kite 3L Beer Tower Dispenser with LED Light & Speaker - for Party for sale in Pretoria / Tshwane (ID:674492281)",
+            "source": "Bob Shop",
+            "link": "https://www.bobshop.co.za/trade-kite-3l-beer-tower-dispenser-with-led-light-speaker-for-party/p/674492281",
+            "imageUrl": "https://img.bobshop.co.za/f_auto,q_auto:eco,d_notfound.png/user/5089877/1_vnpXcGSh9.webp",
+            "thumbnailUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTlj1oylR7oyPVia2q9G9gV7cuWRfZ8Fs7aty9LwOkIrhfKP2aU"
+          },
+          {
+            "title": "Amazon.com: JOMRTS Beer Dispenser Tabletop Beer Dispenser 3 Liter Beer Dispenser with Faucet Commercial Lighted Beer Keg Beer Tower with Removable Icicles for Home, Restaurant (Black) : Industrial & Scientific",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/JOMRTS-Dispenser-Commercial-Removable-Restaurant/dp/B0DXL2W7DW",
+            "imageUrl": "https://m.media-amazon.com/images/I/71I7ZEjmQYL._AC_UF894,1000_QL80_.jpg",
+            "thumbnailUrl": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcTvMdPHSXTFK_0rEtctC41xMOu-ajN1P-HUFfv7RlO2GyFduYe-"
+          },
+          {
+            "title": "Amazon.com: DJFKDYHPE Drink Dispenser,Beer Tower Dispenser,Clear Drink Dispenser, for Parties Beer(Yellow,1.8L) : Industrial & Scientific",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/DJFKDYHPE-Drink-Dispenser-Parties-Yellow/dp/B0DBKF4K9P",
+            "imageUrl": "https://m.media-amazon.com/images/I/51qN8F87BCL.jpg",
+            "thumbnailUrl": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcQ6rMSsQBPsh753lubwM25q-xR9rQo0P1Ib4kZJnBO6S3Qi0WBA"
+          },
+          {
+            "title": "Beer Tower Dispenser with Colorful LED Light Iced Tea Cola Dispenser for Pub | eBay UK",
+            "source": "eBay UK",
+            "link": "https://www.ebay.co.uk/itm/256859874660",
+            "imageUrl": "https://i.bosity.com/product_img/271/70111929/70111929_13_image.jpg",
+            "thumbnailUrl": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcRl7hnwz5npGOz24lCTRRF72dTEQ2YdsiTYmFJlOxImbG2JdJWR"
+          },
+          {
+            "title": "Amazon.com: ATRNA Beer Tower, Beverage Bar Beer Beverage Barrel Machine Juice Barrel Drop Beer Tower Wine Column : 居家與廚房",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/-/zh_TW/dp/B098B4VJB6",
+            "imageUrl": "https://m.media-amazon.com/images/I/61YwcpOVxDS._AC_UF894,1000_QL80_.jpg",
+            "thumbnailUrl": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcTDplwW47jARlch6L2XtxiH37DsY2zeSaKJUk3bUDcpXL42w7Oc"
+          },
+          {
+            "title": "Tecate Ale Beer Tower Tap Handle - Explore China Wholesale Tecate Beer Tap Handles and Custom Beer Tap Handle, Beer Tap Handles, Bar Accessories | Globalsources.com",
+            "source": "Global Sources",
+            "link": "https://www.globalsources.com/product/tecate-beer-tap-handles_1204702627f.htm",
+            "imageUrl": "https://p.globalsources.com/IMAGES/PDT/S1166882042/beer-tower-with-ice-tube.jpg?ver=6103306566",
+            "thumbnailUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQoO9YmHD0plqNzBa2DqC8cMQvVvaMeGYhE84T-yVcaKAW1xi0c"
+          },
+          {
+            "title": "Amazon.com: DOUYUANSHI Beer Tower,3L/101OZ Beer Tower, Drink Tower with Icicles and Lights, Beverage Dispenser with Taps, Drink Container for Party/Bar/Home(Color:Black) : Industrial & Scientific",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/DOUYUANSHI-Icicles-Beverage-Dispenser-Container/dp/B0D5F26M4B",
+            "imageUrl": "https://m.media-amazon.com/images/I/61o2f0OzygL.jpg",
+            "thumbnailUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTtYvaLvwvivZeVWGwHJGYLU_detk_DhXqSWO5fGPcy_LtM-UFz"
+          },
+          {
+            "title": "Amazon.com | 3L Beer Tower Dispenser with Ice Tube and Light-Tabletop Beer Dispenser 3.2Qt. /102oz,Margarita Mimosa Tower Drink Dispenser with Tap, Freeze Tube to Keep Beverages Cold, Perfect for Bar Restaurants: Iced",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/Dispenser-Light-Tabletop-Margarita-Beverages-Restaurants/dp/B0C9Q9XTGP",
+            "imageUrl": "https://m.media-amazon.com/images/I/61N1uZ3wWcL._AC_UF350,350_QL80_.jpg",
+            "thumbnailUrl": "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcQVqfUTSgntnUr5f60XtpBiihbEOcKNmcc80G8zIYpAkQVjHX9H"
+          },
+          {
+            "title": "Drink Dispenser, Beverage Tower Dispenser, Illuminated Yellow Tower With Ice Tube And Tap For Spirits And Water, Home Bar | Fruugo US",
+            "source": "Fruugo US",
+            "link": "https://www.fruugo.us/beverage-dispenser-with-ice-tube-and-tap-illuminated-tower-for-home-bar-yellow/p-400154967-851615564?language=en",
+            "imageUrl": "https://img.fruugo.com/product/0/74/2079726740_max.jpg",
+            "thumbnailUrl": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcRNx1ytVIFs_ygF86Aephvd3DTO7sVx02Vb4MSIPZKat-VUlK11"
+          },
+          {
+            "title": "Amazon.com | WELKOR Hot and Cold Beverage Dispenser with Stand, 0.79 Gallon All-in-One Commercial Drink Dispenser with Ice Core&Stainless Steel Drip Trays for Parties, Beer Bar, Coffee (1 HEAD-0.79 GAL, GOLD): Iced",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/WELKOR-Dispenser-Commercial-Stainless-HEAD-0-79/dp/B0FP2BB1QL",
+            "imageUrl": "https://m.media-amazon.com/images/I/61fqClmx2wL._AC_UF894,1000_QL80_.jpg",
+            "thumbnailUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTG7fl-9KAls1cS9NjmkRjBCgGGubEPVsKnXaMTHl2pLp9EOLnn"
+          },
+          {
+            "title": "Party Restaurant Customization Food Grade PP Plastic Material Drink Dispenser Single Tap Beer Tower - Beer Tower and Beer Dispenser price | Made-in-China.com",
+            "source": "Made-in-China.com",
+            "link": "https://m.made-in-china.com/product/Party-Restaurant-Customization-Food-Grade-PP-Plastic-Material-Drink-Dispenser-Single-Tap-Beer-Tower-2153843635.html",
+            "imageUrl": "https://image.made-in-china.com/2f0j00TtleqYjIbJcb/Party-Restaurant-Customization-Food-Grade-PP-Plastic-Material-Drink-Dispenser-Single-Tap-Beer-Tower.webp",
+            "thumbnailUrl": "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcQlzJYC5_yYFAbCCfIcInMYILbu-tPsSGDgMpg007-Xh2ig_LTf"
+          },
+          {
+            "title": "Amazon.com: Drink Dispenser, Beer Tower Dispenser Beer Tubes Beverage Tower Dispenser with Durable Faucet, 1.5L/ 3L, Straight Barrel Drinks Dispenser for Home Bar Parties, Orange Drink Beverage Dispenser(3L) : Industrial & Scientific",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/Dispenser-Beverage-Durable-Straight-Parties/dp/B0F7HHX6XH",
+            "imageUrl": "https://m.media-amazon.com/images/I/51AqOKq4d7L.jpg",
+            "thumbnailUrl": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcQmJg-WbeGmx9-IbFdekEhdftkYRuurEm2jTN84aOINGEJP7gHh"
+          },
+          {
+            "title": "LED Ice Tube 3 Liter Drink Beer Tower Dispenser - OEM Service",
+            "source": "Alibaba",
+            "link": "https://www.alibaba.com/product-detail/Factory-LED-Ice-Tube-3-Liter_60560061748.html",
+            "imageUrl": "https://sc04.alicdn.com/kf/HTB1eFRsegvD8KJjy0Fl761gBFXax.png",
+            "thumbnailUrl": "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcT9X2NMn9Fzi5gEX362hyq7-hVWwvcEktg4p8U-xa9vxRq65kWf"
+          },
+          {
+            "title": "Amazon.com: Beer tower Beverage Dispenser with LED Lights, Tap and Removable Ice Tube Beer Tower Dispenser, 3L Cold Draft Beer Tower for Bar, Blue Beer Tower Dispenser : Home & Kitchen",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/tower-Beverage-Dispenser-Lights-Removable/dp/B0BVRM82W8",
+            "imageUrl": "https://m.media-amazon.com/images/I/51paAckKFJS._AC_UF350,350_QL80_.jpg",
+            "thumbnailUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRAtntP6GZqRNNlgVQsMrS50eZXg4UXs-LMceGSQSjOPT2Y-0V_"
+          },
+          {
+            "title": "Amazon.com: LBGMEIG Beber 1.5L/50.7OZ Torre de cerveza, torre de bebidas con luces LED y tubo de hielo, mantiene las bebidas heladas, dispensador de bebidas para vino/cócteles tubo de hielo, amarillo : Hogar",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/-/es/LBGMEIG-mantiene-dispensador-cócteles-amarillo/dp/B0D3KVDBQG",
+            "imageUrl": "https://m.media-amazon.com/images/I/51HDXmEGwNL.jpg",
+            "thumbnailUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTgAWqKUBrpt-BR_SaGIrvuJZ9zqODJ2tvSvYNRYW7dbjlwJbbr"
+          },
+          {
+            "title": "Beverage Dispenser With Stand Plastic Water Jar Dispenser with Spigot Drink Jar Jug For Home Parties Restaurants Bars Buffet 3L Black - Walmart.com",
+            "source": "Walmart",
+            "link": "https://www.walmart.com/ip/Beverage-Dispenser-With-Stand-Plastic-Water-Jar-Dispenser-with-Spigot-Drink-Jar-Jug-For-Home-Parties-Restaurants-Bars-Buffet-3L-Black/18421755840",
+            "imageUrl": "https://i5.walmartimages.com/asr/0a7ab9be-c2aa-426e-a8c2-4d7933b5a157.b9eee788280081519bbf563d49e6df96.jpeg",
+            "thumbnailUrl": "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcSkks1hh4goIOYjnVoDxlZotU-LD2hLPXbGfVJPRNIZKdbblxrn"
+          },
+          {
+            "title": "Amazon.com: Spherical Beverage Dispenser Drink Tower,3L Beer Tower Dispenser,with 3 Taps and Freeze Tube,Easy to Clean, Party, Restaurant, KTV, Barbecue Restaurant : Industrial & Scientific",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/Spherical-Beverage-Dispenser-Restaurant-Barbecue/dp/B0DRFB1L8Q",
+            "imageUrl": "https://m.media-amazon.com/images/I/71DAH90AyLL._AC_UF894,1000_QL80_.jpg",
+            "thumbnailUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSQC1zkOsCezRBBGw5b8D_7fwUdWQhl1Udnc-AfuQiVp3KkLWyd"
+          },
+          {
+            "title": "Amazon.com: GRIRIW Beer Tower Accessories Beer Filter for Tower Stainless Steel Mesh Screen: Home & Kitchen",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/GRIRIW-Dispenser-Stainless-Accessory-Install/dp/B0DJ9ZJQ7G",
+            "imageUrl": "https://m.media-amazon.com/images/I/61glUU10wZL._AC_UF894,1000_QL80_.jpg",
+            "thumbnailUrl": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcSN95Z4bD8KKmKXFkwNT3k9c0rv1zEzTkbu9s9UXjxx8A-dnpqN"
+          },
+          {
+            "title": "Amazon.com: FLaig Beer Tower Drink Dispenser Beer Tower Dispenser 1.8L Mini Beverage Tower Dispenser w/Tap and Freeze Tube to Keep Beverages Ice Cold Drink Dispenser Beer Column for Kitchen Party … Gameday",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/FLaig-Dispenser-Beverage-Beverages-Kitchen/dp/B0CSN3M6PS",
+            "imageUrl": "https://m.media-amazon.com/images/I/51UKrTqF6iL.jpg",
+            "thumbnailUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcToChj_AjBmYmtvx5yFM2uKCQymL8Y9PsHfDCO88J92IRj4qdr-"
+          },
+          {
+            "title": "Amazon.com: Beer Dispenser 3 Liters Beer Tower Beverage Juice Dispenser With Taps for Party Bar Home Champagne Beer Dispenser Easy to Clean Drink Tower Beer Liquor Beverage Dispenser (Color : A) :",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/Dispenser-Liters-Beverage-Champagne-Liquor/dp/B0CYLZ3FCH",
+            "imageUrl": "https://m.media-amazon.com/images/I/61VlTE-l9zL._AC_UF350,350_QL80_.jpg",
+            "thumbnailUrl": "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcQHpYfRJCH6YA7BkFfIY7DmZ0tXnn5-hW7FDA63YdguB0RN-z-w"
+          },
+          {
+            "title": "Beer tower 3 Liters of Three-headed Beer Tower Dispenser Bar Special Lighted Beer Keg with Faucet Beer Dispenser Beer Tower Beer Tower Dispenser (Color : Black): Home & Kitchen - Amazon.com",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/Liters-Three-headed-Dispenser-Special-Lighted/dp/B0BVRNS2FP",
+            "imageUrl": "https://m.media-amazon.com/images/I/51n5EFNOtKL._AC_UF350,350_QL80_.jpg",
+            "thumbnailUrl": "https://encrypted-tbn1.gstatic.com/images?q=tbn:ANd9GcRziZnRaUhb9PGPwvx7UnhO5z4E6IalxhInBTuJF_DpolThEc6Y"
+          },
+          {
+            "title": "Amazon.com: Beer Tower Dispenser Drink Beverage Dispenser Beer Dispenser With Cooler Party Tower Beer Dispenser Kit With 3 Taps Party Beverage Dispenser Bar Club Party Accessory ( Color : Gold , Size : 17x57cm ) : Appliances",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/Tower-Dispenser-Beverage-Cooler-Accessory/dp/B0B6Z1PT56",
+            "imageUrl": "https://m.media-amazon.com/images/I/51APZISMsNL._AC_UF350,350_QL80_.jpg",
+            "thumbnailUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSg88SvhTlhDXenOfZtEdOCN29fDjHoDfiawEVZidmdu2CeX1l8"
+          },
+          {
+            "title": "Efficient and Stylish new style beer tap Solutions for Your Business",
+            "source": "Alibaba",
+            "link": "https://www.alibaba.com/showroom/new-style-beer-tap.html",
+            "imageUrl": "https://s.alicdn.com/@sc04/kf/H7ccd1063379942a0bb1920b82468939de/New-Style-Personalized-Logo-1.5L-2L-3L-Plastic-One-Tap-Drink-Juice-Milk-Wine-Beer-Tower-With-Ice-Tube-Cooling.png_300x300.jpg",
+            "thumbnailUrl": "https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcSDyenWGoEX-VDREj9I5h0Kv7QmO7ivr9bv7OHpU35LcEHS-KMX"
+          },
+          {
+            "title": "Amazon.com | OGGI Beverage Dispenser - 3-quart / 6-Pints, Perfect for Parties, Use as Alcohol, Water, Lemonade Dispenser & More: Iced Beverage Dispensers",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/Oggi-7449-0-7449-Beverage-Dispenser/dp/B076FJ6DLY",
+            "imageUrl": "https://m.media-amazon.com/images/I/81f538MoQOL._AC_UF350,350_QL80_.jpg",
+            "thumbnailUrl": "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcQt-qajKJ_Rkz8x3bogTDVJ8S5l6aPdaOK2KTVEamfG4XTYVS2J"
+          },
+          {
+            "title": "TXGJWRA Beer Tower Dispenser 3 Liters Beer Tower Dispenser Tabletop Chiller and Beverage Dispenser Beer Tower with Ice Tube Chill Rod for Party Bar Restaurant Beverage Tower,Silver : Home & Kitchen - Amazon.com",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/TXGJWRA-Dispenser-Tabletop-Beverage-Restaurant/dp/B0DST2T7ZN",
+            "imageUrl": "https://m.media-amazon.com/images/I/714CWgXuguL._AC_UF894,1000_QL80_.jpg",
+            "thumbnailUrl": "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcQpbQ4KN4zcV6U31pbrf7dCS-JmthN6iDsbt-vj8dYNCHXlAvpG"
+          },
+          {
+            "title": "Amazon.com: 3.5 Beer Tower Dispenser, Spherical Beverage Dispenser Drink Tower, with 3 Taps, Easy to Clean, Clear Fashionable Drink Dispenser for Party, Restaurant, KTV, Barbecue Restaurant : Industrial & Scientific",
+            "source": "Amazon.com",
+            "link": "https://www.amazon.com/Dispenser-Spherical-Beverage-Fashionable-Restaurant/dp/B0C3LQB575",
+            "imageUrl": "https://m.media-amazon.com/images/I/71THi+1nM2L._AC_UF894,1000_QL80_.jpg",
+            "thumbnailUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSoh82QOMzelvt0Y3nqZFdYEqJaTFNoPuGvJLalqO7c17PWtgZr"
+          }
+        ],
+        "credits": 3
+      }
+    ],
+    "Code in JavaScript": [
+      {
+        "exact_same_product": false,
+        "confidence": 0.85,
+        "reasoning": "The two products are similar in design and color, but they differ in structure and components.",
+        "visible_differences": [
+          "The second product has an additional handle support.",
+          "The mounting point on the second product is positioned differently."
+        ],
+        "analysis": {
+          "same_shape": false,
+          "same_color": true,
+          "same_components": false,
+          "same_branding": false,
+          "same_accessories": false,
+          "same_mounting": false,
+          "same_proportions": false,
+          "notes": "The products have similar functions but distinct structural differences."
+        }
+      }
+    ],
+    "Code in JavaScript2": [
+      {
+        "exact_same_product": true,
+        "confidence": 0.98,
+        "reasoning": "Both images show a red and black right-angle drill adapter with identical design, shape, and components. Branding is consistent.",
+        "visible_differences": [],
+        "analysis": {
+          "same_shape": true,
+          "same_color": true,
+          "same_components": true,
+          "same_branding": true,
+          "same_accessories": true,
+          "same_mounting": true,
+          "same_proportions": true,
+          "notes": "Both images display the same product without visible differences."
+        }
+      }
+    ],
+    "Code in JavaScript3": [
+      {
+        "title": "3L ABS Plastic Beer Tower Dispenser with LED Lights Summer Juice Drinks Container for Home Bar KTV Drinks Dispenser - AliExpress",
+        "source": "AliExpress",
+        "link": "https://www.aliexpress.com/i/1005008876919968.html",
+        "imageUrl": "https://ae01.alicdn.com/kf/A35055c8d64ee43b8998cff895f19ee9aW.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.aliexpress.com",
+        "parsed_path": "/i/1005008876919968.html",
+        "match_reason": "aliexpress_i",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com: BRIGHTFUFU Beer Tap Brush Black 3l Draft Beer Tower Led Lights Easy Cleaning Beverage Dispenser for Home : Industrial & Scientific",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/BRIGHTFUFU-Lights-Cleaning-Beverage-Dispenser/dp/B0F2J8Z19S",
+        "imageUrl": "https://m.media-amazon.com/images/I/51Jev95GQaL._AC_UF894,1000_QL80_.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/brightfufu-lights-cleaning-beverage-dispenser/dp/b0f2j8z19s",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "simhoa Beer Dispenser with Colorful LED Light Iced Tea Cola Dispenser for Event Bar - Walmart.ca",
+        "source": "Walmart",
+        "link": "https://www.walmart.ca/en/ip/simhoa-Beer-Dispenser-with-Colorful-LED-Light-Iced-Tea-Cola-Dispenser-for-Event-Bar/4USN2F42A07Q",
+        "imageUrl": "https://i5.walmartimages.com/asr/5c26ed38-dd6c-490e-a059-6d1943809efb.8b8119edb4c278d9b510c8270d3d1489.jpeg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.walmart.ca",
+        "parsed_path": "/en/ip/simhoa-beer-dispenser-with-colorful-led-light-iced-tea-cola-dispenser-for-event-bar/4usn2f42a07q",
+        "match_reason": "walmartca_ip",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Glowing Drink Dispenser with Tap Beer Tower Versatile Drinks Dispenser for Bar - Walmart.com",
+        "source": "Walmart",
+        "link": "https://www.walmart.com/ip/Glowing-Drink-Dispenser-with-Tap-Beer-Tower-Versatile-Drinks-Dispenser-for-Bar/5365596267",
+        "imageUrl": "https://i5.walmartimages.com/asr/87ce337a-c83f-4e43-b7d1-f885c6226e31.d684761737ffa5f9360ccd9f46aaaa95.jpeg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.walmart.com",
+        "parsed_path": "/ip/glowing-drink-dispenser-with-tap-beer-tower-versatile-drinks-dispenser-for-bar/5365596267",
+        "match_reason": "walmart_ip",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com: CHENYUEFA Dispensador de cerveza para bar, dispensador de bebidas para fiestas, bufé, máquina de bebidas, torre de cerveza, dispensador de bebidas, accesorios de bar para el hogar, 1.5L/2L/3L para : Industrial",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/-/es/CHENYUEFA-Dispensador-cerveza-dispensador-accesorios/dp/B0CX89PSJX",
+        "imageUrl": "https://m.media-amazon.com/images/I/215fIDQGEfL.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/-/es/chenyuefa-dispensador-cerveza-dispensador-accesorios/dp/b0cx89psjx",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Bluetooth luminous draft beer keg 3L wine cannon beer keg wine set Internet celebrity draft beer dispenser - AliExpress 15",
+        "source": "AliExpress",
+        "link": "https://www.aliexpress.com/item/1005008988618940.html",
+        "imageUrl": "https://ae01.alicdn.com/kf/Sa97c747d99ad47b380678b6f481d7ea2U.jpg_960x960.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.aliexpress.com",
+        "parsed_path": "/item/1005008988618940.html",
+        "match_reason": "aliexpress_item",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "3L/101.45oz Triple Faucets Beer Dispenser Rose Gold Beer Dispenser For KTV, BBQs | eBay",
+        "source": "eBay",
+        "link": "https://www.ebay.com/itm/406443759474",
+        "imageUrl": "https://i.ebayimg.com/images/g/ECAAAeSwYqtoa2op/s-l400.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.ebay.com",
+        "parsed_path": "/itm/406443759474",
+        "match_reason": "ebay_itm",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Bierspender mit farbenfrohen LED LED Light Juice Eced Kaffeespender für | eBay.de",
+        "source": "eBay.de",
+        "link": "https://www.ebay.de/itm/146451476517",
+        "imageUrl": "https://i.ebayimg.com/images/g/A-0AAeSwK6Rn1TIv/s-l1200.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.ebay.de",
+        "parsed_path": "/itm/146451476517",
+        "match_reason": "ebay_itm",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Winston Porter Nuttall 640 Oz. Beverage Dispenser | Wayfair",
+        "source": "Wayfair",
+        "link": "https://www.wayfair.com/kitchen-tabletop/pdp/winston-porter-nuttall-640-oz-beverage-dispenser-w000455955.html",
+        "imageUrl": "https://assets.wfcdn.com/im/52365070/resize-h400-w400^compr-r85/6704/67049199/Nuttall+3+-+Piece+Beverage+Dispenser+Set.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.wayfair.com",
+        "parsed_path": "/kitchen-tabletop/pdp/winston-porter-nuttall-640-oz-beverage-dispenser-w000455955.html",
+        "match_reason": "wayfair_pdp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com: Muloo Dispensador de bebidas brillante con torre de bebidas de grifo, dispensador de bebidas versátil, perfecto para fiestas de bar y reuniones al aire libre : Hogar y Cocina",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/-/es/Dispensador-brillante-dispensador-versátil-reuniones/dp/B0D2CQTZ46",
+        "imageUrl": "https://m.media-amazon.com/images/I/51aXjp9r2vL._AC_UF894,1000_QL80_.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/-/es/dispensador-brillante-dispensador-versátil-reuniones/dp/b0d2cqtz46",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com: CukUJH Beer Bucket 3L Beer Dispenser, Transparent Beverage Juice Wine Dispenser, Suitable for Bars, Parties, Restaurants(Red) : Home & Kitchen",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/Dispenser-Transparent-Beverage-Suitable-Restaurants/dp/B0DBDGBT7P",
+        "imageUrl": "https://m.media-amazon.com/images/I/51ESnNYNMvL.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/dispenser-transparent-beverage-suitable-restaurants/dp/b0dbdgbt7p",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com: Muloo Glowing Drink Dispenser with Tap Drinks Tower Versatile Drinks Dispenser Perfect for Bar Party and Outdoor Gatherings : Home & Kitchen",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/Muloo-Glowing-Dispenser-Versatile-Gatherings/dp/B0D2CQTZ46",
+        "imageUrl": "https://m.media-amazon.com/images/I/51hHuL9IJwL._AC_UF350,350_QL80_.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/muloo-glowing-dispenser-versatile-gatherings/dp/b0d2cqtz46",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com: Beer Tower Dispenser, Drink Dispenser Drinks Dispenser for Parties Beer Tower Dispenser With 3 Taps And Freeze Tube 3L Clear Drink Dispenser Plastic Beverage Dispenser Comes With Stand, Spigot, Ice Co :",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/-/he/218945/dp/B0CQNLHW4F",
+        "imageUrl": "https://m.media-amazon.com/images/I/41bfXGU4egL._AC_UF894,1000_QL80_.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/-/he/218945/dp/b0cqnlhw4f",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com | Beer tower Beer Tower Dispenser 3L Cold Draft Beer Tower Beverage Dispenser with Ice Tube, LED Lights and Tap for Birthday Party Bar, Orange Beer Tower Dispenser: Iced Beverage Dispensers",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/Dispenser-Beverage-Lights-Birthday-Orange/dp/B0BVRMPCN1",
+        "imageUrl": "https://m.media-amazon.com/images/I/41QmymC1O8S._AC_UF350,350_QL80_.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/dispenser-beverage-lights-birthday-orange/dp/b0bvrmpcn1",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com: RABEEXP 3L Beer Tower Dispenser with Tripod Stand, Beverage Dispenser Drink Tower with 3 Taps and Freeze Tube, Draft Beer Tower Dispenser Cold Drink Beverage Beer Tower for Party, Restaurant, Bars :",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/-/he/755824160354/dp/B0CZP5FMMD",
+        "imageUrl": "https://m.media-amazon.com/images/I/6178tu1sHmL.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/-/he/755824160354/dp/b0czp5fmmd",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Buy In Bulk Plastic Beer Tower 3L Ice Tube Included | Alibaba.com",
+        "source": "Alibaba.com",
+        "link": "https://www.alibaba.com/showroom/plastic-beer-tower-3l.html",
+        "imageUrl": "https://s.alicdn.com/@sc04/kf/H93c72795bfab4849a3d196ba2a042493V/Modern-Design-3L-Plastic-Wine-Gun-Luminous-Draft-Beer-Barrel-for-Party-Occasions-Bluetooth-enabled-Beer-Tower.jpg_300x300.jpg",
+        "status_likely_product": false,
+        "status_needs_fetch": true,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.alibaba.com",
+        "parsed_path": "/showroom/plastic-beer-tower-3l.html",
+        "match_reason": "needs_html_validation",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com: TXGJWRA 1.5l Beverage Dispenser with Base Thickened Pc Bucket Drink Dispenser Beer Buffet Drink Machine Party Water Dispenser Beer,C : Home & Kitchen",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/TXGJWRA-Beverage-Dispenser-Thickened-Machine/dp/B0DST2M1X6",
+        "imageUrl": "https://m.media-amazon.com/images/I/51HAj75PdlL.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/txgjwra-beverage-dispenser-thickened-machine/dp/b0dst2m1x6",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com: LEIXIUSM Buffet Drink Machine Beer Tower 1.8L Clear Beverage Tower Dispenser with Included Ice Tube Beverage Dispenser(Yellow) : Industrial & Scientific",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/LEIXIUSM-Machine-Beverage-Dispenser-Included/dp/B0DP2H1Y1K",
+        "imageUrl": "https://m.media-amazon.com/images/I/311igJksqML._AC_UF894,1000_QL80_.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/leixiusm-machine-beverage-dispenser-included/dp/b0dp2h1y1k",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Beverage dispenser with tap, ideal for spirits and outdoor events, yellow 1.5 L Ref: 6767 - Walmart.ca",
+        "source": "Walmart.ca",
+        "link": "https://www.walmart.ca/en/ip/Beverage-dispenser-with-tap-ideal-for-spirits-and-outdoor-events-yellow-1-5-L-Ref-6767/5NZVAAWX1L8K",
+        "imageUrl": "https://i5.walmartimages.com/asr/f1e42153-eea8-4891-9450-56b5d63ba74b.9e17c09c46723cff93d24b8dac56a6c3.jpeg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.walmart.ca",
+        "parsed_path": "/en/ip/beverage-dispenser-with-tap-ideal-for-spirits-and-outdoor-events-yellow-1-5-l-ref-6767/5nzvaawx1l8k",
+        "match_reason": "walmartca_ip",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "JTRHD Beer Dispenser with Cooler Beer Tower 1.8 Litre Clear Water Dispenser with Ice Tube Perfect Party Accessory Bar Club (Color : Blue, Size : 9 x 49cm) : Amazon.com.be: Home & Kitchen",
+        "source": "Amazon.com.be",
+        "link": "https://www.amazon.com.be/-/en/JTRHD-Dispenser-Cooler-Perfect-Accessory/dp/B08XYVGJS3",
+        "imageUrl": "https://m.media-amazon.com/images/I/51VQByzS8SL._AC_UF894,1000_QL80_.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com.be",
+        "parsed_path": "/-/en/jtrhd-dispenser-cooler-perfect-accessory/dp/b08xyvgjs3",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com | Glowing Drink Dispenser with Tap Drinks Tower Versatile Drinks Dispenser for Party and Outdoor Gatherings: Iced Beverage Dispensers",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/Glowing-Dispenser-Versatile-Outdoor-Gatherings/dp/B0DHXC75D2",
+        "imageUrl": "https://m.media-amazon.com/images/I/71df3Fip-EL.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/glowing-dispenser-versatile-outdoor-gatherings/dp/b0dhxc75d2",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com: ZTHYSHXA Beer Dispenser Beer Tower Dispenser 3L Cold Draft Beer Tower Beverage Dispenser with Ice Tube, LED Lights and Tap for Birthday Party Bar, Orange Drink Tower Beer Liquor Beverage Dispenser :",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/ZTHYSHXA-Dispenser-Beverage-Lights-Birthday/dp/B0CYM3BLFR",
+        "imageUrl": "https://m.media-amazon.com/images/I/51tNEMTVHfS._AC_UF350,350_QL80_.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/zthyshxa-dispenser-beverage-lights-birthday/dp/b0cym3blfr",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com | KAREHSBI Beer Tower Dispenser Beer Beverage Tower Dispenser with Ice Tube and Tap, Straight Keg Juice Tower, 1.5L/ 3L Beer Machine Tool Club Accessories, Orange Beverage Tower Dispenser: Iced Beverage",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/KAREHSBI-Dispenser-Beverage-Straight-Accessories/dp/B0CZL6MZDW",
+        "imageUrl": "https://m.media-amazon.com/images/I/41szNOpQ3CS._AC_UF894,1000_QL80_.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/karehsbi-dispenser-beverage-straight-accessories/dp/b0czl6mzdw",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com | Domensi 6 Pcs Drink Tower Dispenser Mimosa Tower with Ice Tube and Bottomless Mimosa Lunch Beer Beverage Drink Tabletop Liquor Dispenser for Bar Party(1.5l,Yellow): Iced Beverage Dispensers",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/Domensi-Dispenser-bottomless-Beverage-Tabletop/dp/B0D4YF44VV",
+        "imageUrl": "https://m.media-amazon.com/images/I/71vGZ2WCckL._AC_UF894,1000_QL80_.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/domensi-dispenser-bottomless-beverage-tabletop/dp/b0d4yf44vv",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Glowing Drink Dispenser with Tap Beer Tower Versatile Drinks Dispenser for Bar - Walmart.com",
+        "source": "Walmart",
+        "link": "https://www.walmart.com/ip/Glowing-Drink-Dispenser-with-Tap-Beer-Tower-Versatile-Drinks-Dispenser-for-Bar/5362541261",
+        "imageUrl": "https://i5.walmartimages.com/asr/ab72fe61-f64e-4729-b6ab-bc0518619348.a273e8484c9760213ccb61dba0eee376.jpeg?odnHeight=768&odnWidth=768&odnBg=FFFFFF",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.walmart.com",
+        "parsed_path": "/ip/glowing-drink-dispenser-with-tap-beer-tower-versatile-drinks-dispenser-for-bar/5362541261",
+        "match_reason": "walmart_ip",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com | Beer Tower Dispenser 3L Cold Draft Beer Tower Beverage Dispenser with LED Lights and Ice Tube for Parties Home Bar: Iced Beverage Dispensers",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/Tower-Dispenser-Beverage-Lights-Parties/dp/B0CD2887G7",
+        "imageUrl": "https://m.media-amazon.com/images/I/61MwmGRGsBL._AC_UF894,1000_QL80_.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/tower-dispenser-beverage-lights-parties/dp/b0cd2887g7",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com: DJFKDYHPE Beer Tower Drinking Beer Tower, Beer Drink Dispenser with Tap and Ice Pipe for Pub Home Self Serve Keg Party Tower Beverage Dispenser(Small) : Industrial & Scientific",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/DJFKDYHPE-Tower-Drinking-Dispenser-Beverage/dp/B0DBKNGTXK",
+        "imageUrl": "https://m.media-amazon.com/images/I/51IyazDATDL.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/djfkdyhpe-tower-drinking-dispenser-beverage/dp/b0dbkngtxk",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com: Beer Tower,Triangular Base Design Beer Tower, Drink Tower with Faucet and Removable Icicles, Commercial Tabletop Drink Tower Dispenser(Color:Silver) : Industrial & Scientific",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/Triangular-Removable-Commercial-Tabletop-Dispenser/dp/B0D5DL4TXF",
+        "imageUrl": "https://m.media-amazon.com/images/I/6136qVPvW9L.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/triangular-removable-commercial-tabletop-dispenser/dp/b0d5dl4txf",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Fichiouy 0.79Gal Cold and Hot Beverage Dispenser with Spigot and White Light for Beverages Tea Drinks - Walmart.com",
+        "source": "Walmart",
+        "link": "https://www.walmart.com/ip/Fichiouy-0-79Gal-Cold-and-Hot-Beverage-Dispenser-with-Spigot-and-White-Light-for-Beverages-Tea-Drinks/5466669718",
+        "imageUrl": "https://i5.walmartimages.com/asr/59b518fd-8e3d-436a-ba2f-55b03731c678.80d65676bd4855b78aeb4ca145374dad.jpeg?odnHeight=768&odnWidth=768&odnBg=FFFFFF",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.walmart.com",
+        "parsed_path": "/ip/fichiouy-0-79gal-cold-and-hot-beverage-dispenser-with-spigot-and-white-light-for-beverages-tea-drinks/5466669718",
+        "match_reason": "walmart_ip",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Ball Shape Beer Tower Dispenser with LED Light Ice Tube, Football Game, Colorful Bar, 3 Liters - AliExpress 15",
+        "source": "AliExpress",
+        "link": "https://www.aliexpress.com/item/32907185067.html",
+        "imageUrl": "https://ae01.alicdn.com/kf/Hb37634e0742f4a9ab0f2e8b274d0e54cD.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.aliexpress.com",
+        "parsed_path": "/item/32907185067.html",
+        "match_reason": "aliexpress_item",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com: GXFCHYL 3L Beer Tower Dispenser with Spigot & LED Light, Plastic Beverage Dispenser Water Tea Juice Drink Dispenser for Home, Restaurant, Hotel, Party, Bar (Champagne Gold, Yellow) : Industrial & Scientific",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/GXFCHYL-Dispenser-Beverage-Restaurant-Champagne/dp/B0F48HQG35",
+        "imageUrl": "https://m.media-amazon.com/images/I/51YhRs2GxFL._AC_UF350,350_QL80_.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/gxfchyl-dispenser-beverage-restaurant-champagne/dp/b0f48hqg35",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Portable Bar Draft Beer Beverage Bucket 3L Plastic Beer Tower Used for Festival Parties and Outdoor Portable Dispensers| Alibaba.com",
+        "source": "Alibaba.com",
+        "link": "https://www.alibaba.com/product-detail/Portable-Bar-Draft-Beer-Beverage-Bucket_1601219876660.html",
+        "imageUrl": "https://sc04.alicdn.com/kf/Haa74a8d082164d80952c5a7db09a6702A.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.alibaba.com",
+        "parsed_path": "/product-detail/portable-bar-draft-beer-beverage-bucket_1601219876660.html",
+        "match_reason": "alibaba_product_detail",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com: SDVantage Beer Tower Dispenser 3L High Capacity Beverage Dispenser with LED Light Tabletop Beer Tower for Beer Drink Wine Cocktail Margarita Drink Tower Dispenser，Pearl Silver : Home & Kitchen",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/SDVantage-Dispenser-Capacity-Margarita-Dispenser，Pearl/dp/B0DR5TDSL4",
+        "imageUrl": "https://m.media-amazon.com/images/I/516wThZVVVL._AC_UF894,1000_QL80_.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/sdvantage-dispenser-capacity-margarita-dispenser，pearl/dp/b0dr5tdsl4",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Bottles - Trade Kite 3L Beer Tower Dispenser with LED Light & Speaker - for Party for sale in Pretoria / Tshwane (ID:674492281)",
+        "source": "Bob Shop",
+        "link": "https://www.bobshop.co.za/trade-kite-3l-beer-tower-dispenser-with-led-light-speaker-for-party/p/674492281",
+        "imageUrl": "https://img.bobshop.co.za/f_auto,q_auto:eco,d_notfound.png/user/5089877/1_vnpXcGSh9.webp",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.bobshop.co.za",
+        "parsed_path": "/trade-kite-3l-beer-tower-dispenser-with-led-light-speaker-for-party/p/674492281",
+        "match_reason": "bobshop_product",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com: JOMRTS Beer Dispenser Tabletop Beer Dispenser 3 Liter Beer Dispenser with Faucet Commercial Lighted Beer Keg Beer Tower with Removable Icicles for Home, Restaurant (Black) : Industrial & Scientific",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/JOMRTS-Dispenser-Commercial-Removable-Restaurant/dp/B0DXL2W7DW",
+        "imageUrl": "https://m.media-amazon.com/images/I/71I7ZEjmQYL._AC_UF894,1000_QL80_.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/jomrts-dispenser-commercial-removable-restaurant/dp/b0dxl2w7dw",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com: DJFKDYHPE Drink Dispenser,Beer Tower Dispenser,Clear Drink Dispenser, for Parties Beer(Yellow,1.8L) : Industrial & Scientific",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/DJFKDYHPE-Drink-Dispenser-Parties-Yellow/dp/B0DBKF4K9P",
+        "imageUrl": "https://m.media-amazon.com/images/I/51qN8F87BCL.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/djfkdyhpe-drink-dispenser-parties-yellow/dp/b0dbkf4k9p",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Beer Tower Dispenser with Colorful LED Light Iced Tea Cola Dispenser for Pub | eBay UK",
+        "source": "eBay UK",
+        "link": "https://www.ebay.co.uk/itm/256859874660",
+        "imageUrl": "https://i.bosity.com/product_img/271/70111929/70111929_13_image.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.ebay.co.uk",
+        "parsed_path": "/itm/256859874660",
+        "match_reason": "ebay_itm",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com: ATRNA Beer Tower, Beverage Bar Beer Beverage Barrel Machine Juice Barrel Drop Beer Tower Wine Column : 居家與廚房",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/-/zh_TW/dp/B098B4VJB6",
+        "imageUrl": "https://m.media-amazon.com/images/I/61YwcpOVxDS._AC_UF894,1000_QL80_.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/-/zh_tw/dp/b098b4vjb6",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Tecate Ale Beer Tower Tap Handle - Explore China Wholesale Tecate Beer Tap Handles and Custom Beer Tap Handle, Beer Tap Handles, Bar Accessories | Globalsources.com",
+        "source": "Global Sources",
+        "link": "https://www.globalsources.com/product/tecate-beer-tap-handles_1204702627f.htm",
+        "imageUrl": "https://p.globalsources.com/IMAGES/PDT/S1166882042/beer-tower-with-ice-tube.jpg?ver=6103306566",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.globalsources.com",
+        "parsed_path": "/product/tecate-beer-tap-handles_1204702627f.htm",
+        "match_reason": "generic_product",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com: DOUYUANSHI Beer Tower,3L/101OZ Beer Tower, Drink Tower with Icicles and Lights, Beverage Dispenser with Taps, Drink Container for Party/Bar/Home(Color:Black) : Industrial & Scientific",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/DOUYUANSHI-Icicles-Beverage-Dispenser-Container/dp/B0D5F26M4B",
+        "imageUrl": "https://m.media-amazon.com/images/I/61o2f0OzygL.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/douyuanshi-icicles-beverage-dispenser-container/dp/b0d5f26m4b",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com | 3L Beer Tower Dispenser with Ice Tube and Light-Tabletop Beer Dispenser 3.2Qt. /102oz,Margarita Mimosa Tower Drink Dispenser with Tap, Freeze Tube to Keep Beverages Cold, Perfect for Bar Restaurants: Iced",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/Dispenser-Light-Tabletop-Margarita-Beverages-Restaurants/dp/B0C9Q9XTGP",
+        "imageUrl": "https://m.media-amazon.com/images/I/61N1uZ3wWcL._AC_UF350,350_QL80_.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/dispenser-light-tabletop-margarita-beverages-restaurants/dp/b0c9q9xtgp",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Drink Dispenser, Beverage Tower Dispenser, Illuminated Yellow Tower With Ice Tube And Tap For Spirits And Water, Home Bar | Fruugo US",
+        "source": "Fruugo US",
+        "link": "https://www.fruugo.us/beverage-dispenser-with-ice-tube-and-tap-illuminated-tower-for-home-bar-yellow/p-400154967-851615564?language=en",
+        "imageUrl": "https://img.fruugo.com/product/0/74/2079726740_max.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.fruugo.us",
+        "parsed_path": "/beverage-dispenser-with-ice-tube-and-tap-illuminated-tower-for-home-bar-yellow/p-400154967-851615564",
+        "match_reason": "fruugo_product",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com | WELKOR Hot and Cold Beverage Dispenser with Stand, 0.79 Gallon All-in-One Commercial Drink Dispenser with Ice Core&Stainless Steel Drip Trays for Parties, Beer Bar, Coffee (1 HEAD-0.79 GAL, GOLD): Iced",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/WELKOR-Dispenser-Commercial-Stainless-HEAD-0-79/dp/B0FP2BB1QL",
+        "imageUrl": "https://m.media-amazon.com/images/I/61fqClmx2wL._AC_UF894,1000_QL80_.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/welkor-dispenser-commercial-stainless-head-0-79/dp/b0fp2bb1ql",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Party Restaurant Customization Food Grade PP Plastic Material Drink Dispenser Single Tap Beer Tower - Beer Tower and Beer Dispenser price | Made-in-China.com",
+        "source": "Made-in-China.com",
+        "link": "https://m.made-in-china.com/product/Party-Restaurant-Customization-Food-Grade-PP-Plastic-Material-Drink-Dispenser-Single-Tap-Beer-Tower-2153843635.html",
+        "imageUrl": "https://image.made-in-china.com/2f0j00TtleqYjIbJcb/Party-Restaurant-Customization-Food-Grade-PP-Plastic-Material-Drink-Dispenser-Single-Tap-Beer-Tower.webp",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "m.made-in-china.com",
+        "parsed_path": "/product/party-restaurant-customization-food-grade-pp-plastic-material-drink-dispenser-single-tap-beer-tower-2153843635.html",
+        "match_reason": "generic_product",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com: Drink Dispenser, Beer Tower Dispenser Beer Tubes Beverage Tower Dispenser with Durable Faucet, 1.5L/ 3L, Straight Barrel Drinks Dispenser for Home Bar Parties, Orange Drink Beverage Dispenser(3L) : Industrial & Scientific",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/Dispenser-Beverage-Durable-Straight-Parties/dp/B0F7HHX6XH",
+        "imageUrl": "https://m.media-amazon.com/images/I/51AqOKq4d7L.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/dispenser-beverage-durable-straight-parties/dp/b0f7hhx6xh",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "LED Ice Tube 3 Liter Drink Beer Tower Dispenser - OEM Service",
+        "source": "Alibaba",
+        "link": "https://www.alibaba.com/product-detail/Factory-LED-Ice-Tube-3-Liter_60560061748.html",
+        "imageUrl": "https://sc04.alicdn.com/kf/HTB1eFRsegvD8KJjy0Fl761gBFXax.png",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.alibaba.com",
+        "parsed_path": "/product-detail/factory-led-ice-tube-3-liter_60560061748.html",
+        "match_reason": "alibaba_product_detail",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com: Beer tower Beverage Dispenser with LED Lights, Tap and Removable Ice Tube Beer Tower Dispenser, 3L Cold Draft Beer Tower for Bar, Blue Beer Tower Dispenser : Home & Kitchen",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/tower-Beverage-Dispenser-Lights-Removable/dp/B0BVRM82W8",
+        "imageUrl": "https://m.media-amazon.com/images/I/51paAckKFJS._AC_UF350,350_QL80_.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/tower-beverage-dispenser-lights-removable/dp/b0bvrm82w8",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com: LBGMEIG Beber 1.5L/50.7OZ Torre de cerveza, torre de bebidas con luces LED y tubo de hielo, mantiene las bebidas heladas, dispensador de bebidas para vino/cócteles tubo de hielo, amarillo : Hogar",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/-/es/LBGMEIG-mantiene-dispensador-cócteles-amarillo/dp/B0D3KVDBQG",
+        "imageUrl": "https://m.media-amazon.com/images/I/51HDXmEGwNL.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/-/es/lbgmeig-mantiene-dispensador-cócteles-amarillo/dp/b0d3kvdbqg",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Beverage Dispenser With Stand Plastic Water Jar Dispenser with Spigot Drink Jar Jug For Home Parties Restaurants Bars Buffet 3L Black - Walmart.com",
+        "source": "Walmart",
+        "link": "https://www.walmart.com/ip/Beverage-Dispenser-With-Stand-Plastic-Water-Jar-Dispenser-with-Spigot-Drink-Jar-Jug-For-Home-Parties-Restaurants-Bars-Buffet-3L-Black/18421755840",
+        "imageUrl": "https://i5.walmartimages.com/asr/0a7ab9be-c2aa-426e-a8c2-4d7933b5a157.b9eee788280081519bbf563d49e6df96.jpeg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.walmart.com",
+        "parsed_path": "/ip/beverage-dispenser-with-stand-plastic-water-jar-dispenser-with-spigot-drink-jar-jug-for-home-parties-restaurants-bars-buffet-3l-black/18421755840",
+        "match_reason": "walmart_ip",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com: Spherical Beverage Dispenser Drink Tower,3L Beer Tower Dispenser,with 3 Taps and Freeze Tube,Easy to Clean, Party, Restaurant, KTV, Barbecue Restaurant : Industrial & Scientific",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/Spherical-Beverage-Dispenser-Restaurant-Barbecue/dp/B0DRFB1L8Q",
+        "imageUrl": "https://m.media-amazon.com/images/I/71DAH90AyLL._AC_UF894,1000_QL80_.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/spherical-beverage-dispenser-restaurant-barbecue/dp/b0drfb1l8q",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com: GRIRIW Beer Tower Accessories Beer Filter for Tower Stainless Steel Mesh Screen: Home & Kitchen",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/GRIRIW-Dispenser-Stainless-Accessory-Install/dp/B0DJ9ZJQ7G",
+        "imageUrl": "https://m.media-amazon.com/images/I/61glUU10wZL._AC_UF894,1000_QL80_.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/gririw-dispenser-stainless-accessory-install/dp/b0dj9zjq7g",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com: FLaig Beer Tower Drink Dispenser Beer Tower Dispenser 1.8L Mini Beverage Tower Dispenser w/Tap and Freeze Tube to Keep Beverages Ice Cold Drink Dispenser Beer Column for Kitchen Party … Gameday",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/FLaig-Dispenser-Beverage-Beverages-Kitchen/dp/B0CSN3M6PS",
+        "imageUrl": "https://m.media-amazon.com/images/I/51UKrTqF6iL.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/flaig-dispenser-beverage-beverages-kitchen/dp/b0csn3m6ps",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com: Beer Dispenser 3 Liters Beer Tower Beverage Juice Dispenser With Taps for Party Bar Home Champagne Beer Dispenser Easy to Clean Drink Tower Beer Liquor Beverage Dispenser (Color : A) :",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/Dispenser-Liters-Beverage-Champagne-Liquor/dp/B0CYLZ3FCH",
+        "imageUrl": "https://m.media-amazon.com/images/I/61VlTE-l9zL._AC_UF350,350_QL80_.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/dispenser-liters-beverage-champagne-liquor/dp/b0cylz3fch",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Beer tower 3 Liters of Three-headed Beer Tower Dispenser Bar Special Lighted Beer Keg with Faucet Beer Dispenser Beer Tower Beer Tower Dispenser (Color : Black): Home & Kitchen - Amazon.com",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/Liters-Three-headed-Dispenser-Special-Lighted/dp/B0BVRNS2FP",
+        "imageUrl": "https://m.media-amazon.com/images/I/51n5EFNOtKL._AC_UF350,350_QL80_.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/liters-three-headed-dispenser-special-lighted/dp/b0bvrns2fp",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com: Beer Tower Dispenser Drink Beverage Dispenser Beer Dispenser With Cooler Party Tower Beer Dispenser Kit With 3 Taps Party Beverage Dispenser Bar Club Party Accessory ( Color : Gold , Size : 17x57cm ) : Appliances",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/Tower-Dispenser-Beverage-Cooler-Accessory/dp/B0B6Z1PT56",
+        "imageUrl": "https://m.media-amazon.com/images/I/51APZISMsNL._AC_UF350,350_QL80_.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/tower-dispenser-beverage-cooler-accessory/dp/b0b6z1pt56",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Efficient and Stylish new style beer tap Solutions for Your Business",
+        "source": "Alibaba",
+        "link": "https://www.alibaba.com/showroom/new-style-beer-tap.html",
+        "imageUrl": "https://s.alicdn.com/@sc04/kf/H7ccd1063379942a0bb1920b82468939de/New-Style-Personalized-Logo-1.5L-2L-3L-Plastic-One-Tap-Drink-Juice-Milk-Wine-Beer-Tower-With-Ice-Tube-Cooling.png_300x300.jpg",
+        "status_likely_product": false,
+        "status_needs_fetch": true,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.alibaba.com",
+        "parsed_path": "/showroom/new-style-beer-tap.html",
+        "match_reason": "needs_html_validation",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com | OGGI Beverage Dispenser - 3-quart / 6-Pints, Perfect for Parties, Use as Alcohol, Water, Lemonade Dispenser & More: Iced Beverage Dispensers",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/Oggi-7449-0-7449-Beverage-Dispenser/dp/B076FJ6DLY",
+        "imageUrl": "https://m.media-amazon.com/images/I/81f538MoQOL._AC_UF350,350_QL80_.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/oggi-7449-0-7449-beverage-dispenser/dp/b076fj6dly",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "TXGJWRA Beer Tower Dispenser 3 Liters Beer Tower Dispenser Tabletop Chiller and Beverage Dispenser Beer Tower with Ice Tube Chill Rod for Party Bar Restaurant Beverage Tower,Silver : Home & Kitchen - Amazon.com",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/TXGJWRA-Dispenser-Tabletop-Beverage-Restaurant/dp/B0DST2T7ZN",
+        "imageUrl": "https://m.media-amazon.com/images/I/714CWgXuguL._AC_UF894,1000_QL80_.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/txgjwra-dispenser-tabletop-beverage-restaurant/dp/b0dst2t7zn",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      },
+      {
+        "title": "Amazon.com: 3.5 Beer Tower Dispenser, Spherical Beverage Dispenser Drink Tower, with 3 Taps, Easy to Clean, Clear Fashionable Drink Dispenser for Party, Restaurant, KTV, Barbecue Restaurant : Industrial & Scientific",
+        "source": "Amazon.com",
+        "link": "https://www.amazon.com/Dispenser-Spherical-Beverage-Fashionable-Restaurant/dp/B0C3LQB575",
+        "imageUrl": "https://m.media-amazon.com/images/I/71THi+1nM2L._AC_UF894,1000_QL80_.jpg",
+        "status_likely_product": true,
+        "status_needs_fetch": false,
+        "validation_source": "html_validation",
+        "is_product_page": null,
+        "validation_confidence": "pending",
+        "parsed_host": "www.amazon.com",
+        "parsed_path": "/dispenser-spherical-beverage-fashionable-restaurant/dp/b0c3lqb575",
+        "match_reason": "amazon_dp",
+        "product_title": "",
+        "product_description": "",
+        "image_urls": []
+      }
+    ]
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3bc22dee87345d4fd7b7c4fb8dd9ad70b8ed3f11fd154452b755ea49b9a98908"
+  }
+}
