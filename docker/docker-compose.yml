@@ -1,11 +1,8 @@
 networks:
   litellm_net:
   n8n_net:
-  # postiz_net:
-  # open_web_ui_net:
 
 services:
-
   n8n-postgres:
     image: postgres:17-alpine
     restart: unless-stopped
@@ -21,10 +18,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    ports:
-      - "5432:5432"
-    networks: 
-      n8n_net:
+    networks:
+      - n8n_net
 
   n8n:
     image: n8nio/n8n:latest
@@ -50,28 +45,26 @@ services:
     depends_on:
       n8n-postgres:
         condition: service_healthy
-    networks: 
-      n8n_net:
-    # extra_hosts:
-      # - host.docker.internal:host-gateway
+    networks:
+      - n8n_net
 
   litellm-postgres:
     image: postgres:17-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${LITELLM_DB_USER}
-      POSTGRES_PASSWORD: ${LITELLM_DB_PASS}
-      POSTGRES_DB: ${LITELLM_DB_NAME}
+      - POSTGRES_USER=${LITELLM_DB_USER}
+      - POSTGRES_PASSWORD=${LITELLM_DB_PASS}
+      - POSTGRES_DB=${LITELLM_DB_NAME}
     volumes:
       - litellm_pg_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${LITELLM_DB_USER} -d ${LITELLM_DB_NAME}"]
-      start_period: 30s     # ← give the init time
+      start_period: 30s
       interval: 10s
       timeout: 5s
       retries: 5
-    networks: 
-      litellm_net:
+    networks:
+      - litellm_net
 
   litellm:
     image: ghcr.io/berriai/litellm:main-latest
@@ -87,98 +80,26 @@ services:
     depends_on:
       litellm-postgres:
         condition: service_healthy
-    networks: 
-      litellm_net:
+    networks:
+      - litellm_net
 
-  # postiz-postgres:
-  #   image: postgres:17-alpine
-  #   restart: unless-stopped
-  #   environment:
-  #     POSTGRES_USER: ${POSTIZ_DB_USER}
-  #     POSTGRES_PASSWORD: ${POSTIZ_DB_PASS}
-  #     POSTGRES_DB: ${POSTIZ_DB_NAME}
-  #   volumes:
-  #     - postiz_pg_data:/var/lib/postgresql/data
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -U ${POSTIZ_DB_USER} -d ${POSTIZ_DB_NAME}"]
-  #     start_period: 30s     # ← give the init time
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
-  #   networks:
-  #     - postiz_net
-
-  # postiz:
-  #   image: ghcr.io/gitroomhq/postiz-app:latest
-  #   restart: always
-  #   environment:
-  #     MAIN_URL: "https://postiz.alexandru-croitoriu.dev"
-  #     FRONTEND_URL: "https://postiz.alexandru-croitoriu.dev"
-  #     NEXT_PUBLIC_BACKEND_URL: "https://postiz.alexandru-croitoriu.dev/api"
-  #     BACKEND_INTERNAL_URL: "http://localhost:3000"
-  #     JWT_SECRET: "change-me"
-  #     # Add a small connect timeout so Prisma doesn't bail instantly:
-  #     DATABASE_URL: "postgresql://${POSTIZ_DB_USER}:${POSTIZ_DB_PASS}@postiz-postgres:5432/${POSTIZ_DB_NAME}?connect_timeout=20"
-  #     REDIS_URL: "redis://postiz-redis:6379"
-  #     IS_GENERAL: "true"
-  #     DISABLE_REGISTRATION: "true"
-  #     # === Storage Settings
-  #     STORAGE_PROVIDER: "local"
-  #     UPLOAD_DIRECTORY: "/uploads"
-  #     NEXT_PUBLIC_UPLOAD_DIRECTORY: "/uploads"
-  #     # === Social Media API Settings
-
-  #   depends_on:
-  #     postiz-postgres:
-  #       condition: service_healthy
-  #     postiz-redis:
-  #       condition: service_healthy
-  #   ports:
-  #     - "5000:5000"
-  #   networks:
-  #     - postiz_net
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.routers.postiz.rule=Host(`postiz.alexandru-croitoriu.dev`)"
-  #     - "traefik.http.routers.postiz.entrypoints=websecure"
-  #     - "traefik.http.routers.postiz.tls=true"
-  #     - "traefik.http.services.postiz.loadbalancer.server.port=5000"
-
-  # postiz-redis:
-  #   image: redis:7.2
-  #   restart: always
-  #   command: ["redis-server", "--appendonly", "yes"]
-  #   healthcheck:
-  #     test: ["CMD", "redis-cli", "ping"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 20
-  #   volumes:
-  #     - postiz-redis-data:/data
-  #   networks:
-  #     - postiz_net
-
-  # open-webui:
-  #   image: ghcr.io/open-webui/open-webui:main
-  #   restart: unless-stopped
-  #   environment:
-  #     - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY}
-  #   volumes:
-  #     - open_webui_data:/app/backend/data
-  #   networks:
-  #     open_web_ui_net:
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.routers.openwebui.rule=Host(`webui.alexandru-croitoriu.dev`)"
-  #     - "traefik.http.routers.openwebui.entrypoints=websecure"
-  #     - "traefik.http.routers.openwebui.tls=true"
-  #     - "traefik.http.services.openwebui.loadbalancer.server.port=8080"
-
+  adminer:
+    image: adminer:latest
+    restart: unless-stopped
+    environment:
+      - ADMINER_DEFAULT_SERVER=${ADMINER_DEFAULT_SERVER}
+    ports:
+      - "8081:8080"
+    depends_on:
+      n8n-postgres:
+        condition: service_healthy
+      litellm-postgres:
+        condition: service_healthy
+    networks:
+      - n8n_net
+      - litellm_net
 
 volumes:
   n8n_pg_data: {}
   litellm_pg_data: {}
   n8n_data: {}
-  # open_webui_data: {}
-  # postiz_pg_data: {}
-  # postiz-redis-data: {}

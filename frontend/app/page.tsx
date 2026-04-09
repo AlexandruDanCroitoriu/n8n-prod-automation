@@ -26,6 +26,13 @@ type ProductImage = {
   url: string;
 };
 
+type ProductMetafield = {
+  row_number: number;
+  Metafield: string;
+  Type: string;
+  value?: string;
+};
+
 type ProductDetail = {
   row_number: number;
   document_url: string;
@@ -33,6 +40,7 @@ type ProductDetail = {
   product_title: string;
   urls: ProductUrlEntry[];
   images?: Array<{ items: ProductImage[] }>;
+  metafields?: Array<{ items: ProductMetafield[] }>;
 };
 
 type Prompt = {
@@ -63,7 +71,7 @@ export default function Home() {
   const [deletingLink, setDeletingLink] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [confirmEntry, setConfirmEntry] = useState<ProductUrlEntry | null>(null);
-  const [fetchingData, setFetchingData] = useState<string | null>(null);
+  const [fetchingData, setFetchingData] = useState<Set<string>>(new Set());
   const [fetchedUrls, setFetchedUrls] = useState<Set<string>>(new Set());
   const [viewInfoEntry, setViewInfoEntry] = useState<ProductUrlEntry | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number>(-1);
@@ -82,6 +90,50 @@ export default function Home() {
   const [metafields, setMetafields] = useState<Metafield[]>([]);
   const [metafieldsLoading, setMetafieldsLoading] = useState(false);
   const [metafieldsError, setMetafieldsError] = useState<string | null>(null);
+  const [showImagesSidebar, setShowImagesSidebar] = useState(false);
+  const [sidebarLightbox, setSidebarLightbox] = useState<{ entry: ProductUrlEntry; index: number } | null>(null);
+  const [sidebarSelectedImages, setSidebarSelectedImages] = useState<Set<string>>(new Set());
+  const [addingImages, setAddingImages] = useState(false);
+  const [addImagesError, setAddImagesError] = useState<string | null>(null);
+  const [editingMetafield, setEditingMetafield] = useState<number | null>(null);
+  const [editMetafieldValue, setEditMetafieldValue] = useState("");
+  const [savingMetafield, setSavingMetafield] = useState(false);
+  const [saveMetafieldError, setSaveMetafieldError] = useState<string | null>(null);
+  const [metafieldImageModal, setMetafieldImageModal] = useState(false);
+  const [generatingMetafields, setGeneratingMetafields] = useState(false);
+  const [generateMetafieldsError, setGenerateMetafieldsError] = useState<string | null>(null);
+
+  async function generateProductData() {
+    if (!selectedProduct || !productDetail) return;
+    setGeneratingMetafields(true);
+    setGenerateMetafieldsError(null);
+    try {
+      const setProductDataEntry = prompts.find((p) => "Set Product Data" in p) ?? null;
+      const setProductDataPrompt = setProductDataEntry ? (setProductDataEntry["Set Product Data"] as string) ?? "" : "";
+      const res = await fetch("/api/product", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          method: "generateProductData",
+          row_number: selectedProduct.row_number,
+          product: selectedProduct.product,
+          drive_folder: selectedProduct["Drive Folder link"],
+          drive_sheet: selectedProduct["Drive Sheets link"],
+          set_product_data_prompt: setProductDataPrompt,
+        }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.body ?? errData?.error ?? `HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      setProductDetail(normalizeProductDetail(data));
+    } catch (err) {
+      setGenerateMetafieldsError(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setGeneratingMetafields(false);
+    }
+  }
 
   async function fetchMetafields() {
     setMetafieldsLoading(true);
@@ -138,17 +190,33 @@ export default function Home() {
 
   function normalizeProductDetail(data: unknown): ProductDetail {
     const raw: ProductDetail = Array.isArray(data) ? data[0] : data as ProductDetail;
-    return {
-      ...raw,
-      urls: raw.urls?.map((entry) => ({
+    const seenUrls = new Set<number>();
+    const urls = (raw.urls ?? [])
+      .filter((entry) => {
+        if (seenUrls.has(entry.row_number)) return false;
+        seenUrls.add(entry.row_number);
+        return true;
+      })
+      .map((entry) => ({
         ...entry,
         images: Array.isArray(entry.images)
           ? entry.images
           : typeof entry.images === "string"
           ? (() => { try { return JSON.parse(entry.images as unknown as string); } catch { return (entry.images as unknown as string).split(",").map((s: string) => s.trim()).filter(Boolean); } })()
           : undefined,
-      })) ?? [],
-    };
+      }));
+    const images = raw.images?.map((group) => {
+      const seenImgs = new Set<number>();
+      return {
+        ...group,
+        items: group.items.filter((img) => {
+          if (seenImgs.has(img.row_number)) return false;
+          seenImgs.add(img.row_number);
+          return true;
+        }),
+      };
+    });
+    return { ...raw, urls, images };
   }
 
   async function fetchProduct(product: Product) {
@@ -176,6 +244,94 @@ export default function Home() {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function addImagesFromSidebar() {
+    if (!productDetail || sidebarSelectedImages.size === 0) return;
+    setAddingImages(true);
+    setAddImagesError(null);
+    try {
+      const res = await fetch("/api/product", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          method: "addImages",
+          row_number: productDetail.row_number,
+          product: selectedProduct!.product,
+          drive_folder: selectedProduct!["Drive Folder link"],
+          drive_sheet: selectedProduct!["Drive Sheets link"],
+          images: Array.from(sidebarSelectedImages),
+        }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.body ?? errData?.error ?? `HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      const normalized = normalizeProductDetail(data);
+      const existingByRowNumber = new Map(productDetail.urls.map((u) => [u.row_number, u]));
+      normalized.urls = normalized.urls.map((u) => {
+        const existing = existingByRowNumber.get(u.row_number);
+        if (!existing) return u;
+        // Response may strip scraped fields — preserve them from current state
+        return {
+          ...existing,
+          ...Object.fromEntries(
+            Object.entries(u).filter(([, v]) => v !== undefined && v !== null && v !== "")
+          ),
+          images: u.images ?? existing.images,
+        };
+      });
+      setProductDetail(normalized);
+      setSidebarSelectedImages(new Set());
+    } catch (err) {
+      setAddImagesError(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setAddingImages(false);
+    }
+  }
+
+  async function updateMetafield(rowNumber: number, metafieldName: string, value: string) {
+    if (!productDetail) return;
+    setSavingMetafield(true);
+    setSaveMetafieldError(null);
+    try {
+      const res = await fetch("/api/product", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          method: "updateMetafields",
+          row_number: productDetail.row_number,
+          product: selectedProduct!.product,
+          drive_folder: selectedProduct!["Drive Folder link"],
+          drive_sheet: selectedProduct!["Drive Sheets link"],
+          metafield_row_number: rowNumber,
+          metafield: metafieldName,
+          value,
+        }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.body ?? errData?.error ?? `HTTP ${res.status}`);
+      }
+      setProductDetail((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          metafields: prev.metafields?.map((g) => ({
+            ...g,
+            items: g.items.map((mf) =>
+              mf.row_number === rowNumber ? { ...mf, value } : mf
+            ),
+          })),
+        };
+      });
+      setEditingMetafield(null);
+    } catch (err) {
+      setSaveMetafieldError(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setSavingMetafield(false);
     }
   }
 
@@ -245,6 +401,7 @@ export default function Home() {
     setSetLinksSuccess(false);
     try {
       const body = {
+          method: "addProductLinks",
           row_number: selectedProduct.row_number,
           product: selectedProduct.product,
           drive_folder: selectedProduct["Drive Folder link"],
@@ -255,7 +412,7 @@ export default function Home() {
           links: productLinks.filter((l) => l.trim()),
         };
       console.log("[add_product_links] request", body);
-      const res = await fetch("/api/add_product_links", {
+      const res = await fetch("/api/product", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -263,10 +420,10 @@ export default function Home() {
       if (!res.ok) throw new Error("Failed to add product links");
       const data = await res.json();
       console.log("[add_product_links] response", data);
+      setProductDetail(normalizeProductDetail(data));
       setSettingLinks(false);
       setLinkErrors([null]);
       setSetLinksSuccess(true);
-      await fetchProduct(selectedProduct);
     } catch (err) {
       setSetLinksError(err instanceof Error ? err.message : "Unknown error");
     } finally {
@@ -276,28 +433,38 @@ export default function Home() {
 
   async function fetchProductData(entry: ProductUrlEntry) {
     if (!selectedProduct) return;
-    setFetchingData(entry.URL);
+    setFetchingData((prev) => new Set(prev).add(entry.URL));
     try {
       const dataExtractorEntry = prompts.find((p) => "Data Extractor" in p) ?? prompts[0];
       const dataExtractorPrompt = dataExtractorEntry ? (dataExtractorEntry["Data Extractor"] as string) ?? "" : "";
-      const params = new URLSearchParams({
-        row_number: String(selectedProduct.row_number),
+      const body = {
+        method: "fetchProductUrlData",
+        row_number: selectedProduct.row_number,
         product: selectedProduct.product,
+        drive_folder: selectedProduct["Drive Folder link"],
         drive_sheet: selectedProduct["Drive Sheets link"],
+        document_url: productDetail?.document_url,
+        shopify_gid: productDetail?.shopify_gid,
+        product_title: productDetail?.product_title,
         link_url: entry.URL,
-        link_row_number: String(entry.row_number),
+        link_row_number: entry.row_number,
         data_extractor_prompt: dataExtractorPrompt,
+      };
+      console.log("[fetch-product-url-data] request", body);
+      const res = await fetch("/api/product", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
       });
-      console.log("[fetch-product-url-data] request", Object.fromEntries(params));
-      const res = await fetch(`/api/fetch-product-url-data?${params}`);
       if (!res.ok) throw new Error("Failed to fetch product data");
       const data = await res.json();
       console.log("[fetch-product-url-data] response", data);
+      setProductDetail(normalizeProductDetail(data));
       setFetchedUrls((prev) => new Set(prev).add(entry.URL));
     } catch {
       // silently fail — button just won't turn green
     } finally {
-      setFetchingData(null);
+      setFetchingData((prev) => { const next = new Set(prev); next.delete(entry.URL); return next; });
     }
   }
 
@@ -308,6 +475,7 @@ export default function Home() {
     setDeleteError(null);
     try {
       const deleteBody = {
+          method: "removeProductLink",
           row_number: selectedProduct.row_number,
           product: selectedProduct.product,
           drive_folder: selectedProduct["Drive Folder link"],
@@ -317,7 +485,7 @@ export default function Home() {
           link_imageUrl: entry.imageUrl,
         };
       console.log("[delete-product-link] request", deleteBody);
-      const res = await fetch("/api/delete-product-link", {
+      const res = await fetch("/api/product", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(deleteBody),
@@ -325,7 +493,7 @@ export default function Home() {
       if (!res.ok) throw new Error("Failed to delete link");
       const deleteData = await res.json();
       console.log("[delete-product-link] response", deleteData);
-      await fetchProduct(selectedProduct);
+      setProductDetail(normalizeProductDetail(deleteData));
     } catch (err) {
       setDeleteError(err instanceof Error ? err.message : "Unknown error");
     } finally {
@@ -374,8 +542,8 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-gray-900 via-slate-800 to-gray-900 flex items-stretch justify-center p-6">
-      <div className="w-full max-w-7xl bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+    <div className="min-h-screen bg-linear-to-br from-gray-900 via-slate-800 to-gray-900 flex items-stretch justify-center p-6 gap-4">
+      <div className="flex-1 min-w-0 max-w-400 bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
 
         {/* Header */}
         <div className="border-b border-gray-700 px-6 py-4 flex items-center justify-between">
@@ -414,6 +582,34 @@ export default function Home() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                 </svg>
               </button>
+            )}
+            {selectedProduct && (
+              <>
+                {generateMetafieldsError && (
+                  <span className="text-xs text-red-400">{generateMetafieldsError}</span>
+                )}
+                <button
+                  onClick={generateProductData}
+                  disabled={generatingMetafields || loading}
+                  className="flex items-center gap-1.5 rounded-lg border border-teal-700 px-3 py-1.5 text-xs text-teal-400 hover:text-teal-300 hover:border-teal-500 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {generatingMetafields ? (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      Generating…
+                    </>
+                  ) : (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      </svg>
+                      Generate Product Data
+                    </>
+                  )}
+                </button>
+              </>
             )}
             <button
               onClick={refresh}
@@ -466,80 +662,7 @@ export default function Home() {
 
           {/* Products tab */}
           {activeTab === "products" && <>
-          {/* Add links form */}
-          {settingLinks && selectedProduct && (
-            <form onSubmit={setProductLinksHandler} className="mb-4 rounded-lg border border-gray-700 bg-gray-800 p-4">
-              <p className="text-sm font-semibold text-gray-200 mb-3">Add product page links</p>
-              <div className="space-y-2 mb-3">
-                {productLinks.map((link, i) => (
-                  <div key={i} className="flex flex-col gap-1">
-                    <div className="flex gap-2">
-                      <input
-                        type="url"
-                        placeholder="https://..."
-                        value={link}
-                        onChange={(e) => {
-                          setProductLinks((prev) => prev.map((l, j) => j === i ? e.target.value : l));
-                          setLinkErrors((prev) => prev.map((err, j) => j === i ? null : err));
-                        }}
-                        className={`flex-1 rounded-lg border bg-gray-700 px-3 py-2 text-sm text-gray-100 placeholder-gray-500 focus:outline-none ${
-                          linkErrors[i] ? "border-red-500 focus:border-red-500" : "border-gray-600 focus:border-blue-500"
-                        }`}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setProductLinks((prev) => prev.filter((_, j) => j !== i));
-                          setLinkErrors((prev) => prev.filter((_, j) => j !== i));
-                        }}
-                        disabled={productLinks.length === 1}
-                        className="text-gray-500 hover:text-red-400 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                        aria-label="Remove link"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    </div>
-                    {linkErrors[i] && <p className="text-xs text-red-400 pl-1">{linkErrors[i]}</p>}
-                  </div>
-                ))}
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setProductLinks((prev) => [...prev, ""]);
-                  setLinkErrors((prev) => [...prev, null]);
-                }}
-                className="text-xs text-blue-400 hover:text-blue-300 mb-4 flex items-center gap-1"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                </svg>
-                Add link
-              </button>
-              {setLinksError && <p className="mb-2 text-xs text-red-400">{setLinksError}</p>}
-              <div className="flex gap-2">
-                <button
-                  type="submit"
-                  disabled={setLinksLoading}
-                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {setLinksLoading ? "Saving..." : "Save"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setSettingLinks(false); setSetLinksError(null); setLinkErrors([null]); }}
-                  className="rounded-lg border border-gray-600 px-4 py-2 text-sm text-gray-400 hover:text-white"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          )}
-          {setLinksSuccess && (
-            <p className="mb-3 text-xs text-green-400">Links saved successfully.</p>
-          )}
+
           {/* Create form */}
           {creating && (
             <form onSubmit={createProduct} className="mb-4 flex gap-2 items-start">
@@ -736,6 +859,45 @@ export default function Home() {
             />
           )}
 
+          {/* Metafield image picker modal */}
+          {metafieldImageModal && productDetail && (
+            <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-6" onClick={() => setMetafieldImageModal(false)}>
+              <div className="bg-gray-900 rounded-xl border border-gray-700 max-w-3xl w-full max-h-[80vh] overflow-y-auto p-5" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-sm font-semibold text-gray-200">Select Image</p>
+                  <button onClick={() => setMetafieldImageModal(false)} className="text-gray-500 hover:text-gray-200 text-xl leading-none">&times;</button>
+                </div>
+                <div className="grid grid-cols-4 gap-3">
+                  {productDetail.urls.flatMap((u) => u.images ?? []).map((imgUrl, i) => (
+                    <button
+                      key={i}
+                      onClick={() => { setEditMetafieldValue(imgUrl); setMetafieldImageModal(false); }}
+                      className={`relative aspect-square rounded overflow-hidden border-2 ${
+                        editMetafieldValue === imgUrl ? "border-indigo-500" : "border-transparent"
+                      } hover:border-indigo-400`}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={imgUrl} alt="" className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                  {productDetail.urls.flatMap((u) => u.images ?? []).length === 0 && (
+                    <p className="col-span-4 text-gray-500 text-sm">No images found in links. Fetch link data first.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Sidebar image lightbox */}
+          {sidebarLightbox && (
+            <Lightbox
+              open
+              index={sidebarLightbox.index}
+              close={() => setSidebarLightbox(null)}
+              slides={(sidebarLightbox.entry.images ?? []).map((src) => ({ src }))}
+            />
+          )}
+
           {/* Product images lightbox */}
           {productDetail?.images && productDetail.images.flatMap((g) => g.items).length > 0 && (
             <Lightbox
@@ -773,42 +935,16 @@ export default function Home() {
 
           {/* Product detail */}
           {selectedProduct && productDetail && (
-            <div className="space-y-2">
-              {/* Metadata fields */}
-              {/* Row + Title combined */}
-              <div className="rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 flex flex-col gap-2">
-                <div className="flex gap-4 items-baseline">
-                  <span className="text-gray-400 text-sm w-40 shrink-0">Row</span>
-                  <span className="text-gray-100 text-sm">{productDetail.row_number}</span>
-                </div>
-                <div className="h-px bg-gray-700" />
-                <div className="flex gap-4 items-baseline">
-                  <span className="text-gray-400 text-sm w-40 shrink-0">Title</span>
-                  <span className="text-gray-100 text-sm break-all">{productDetail.product_title}</span>
-                </div>
-              </div>
-              {([
-                ["Shopify GID", productDetail.shopify_gid],
-                ["Document URL", productDetail.document_url],
-              ] as [string, string][]).map(([label, val]) => val ? (
-                <div key={label} className="rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 flex gap-4">
-                  <span className="text-gray-400 text-sm w-40 shrink-0">{label}</span>
-                  <span className="text-gray-100 text-sm break-all">
-                    {val.startsWith("http") ? (
-                      <a href={val} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">{val}</a>
-                    ) : val}
-                  </span>
-                </div>
-              ) : null)}
-
-              {/* Product images */}
+            <div className="flex gap-4 items-start">
+              {/* Left: product images */}
               {productDetail.images && productDetail.images.flatMap((g) => g.items).length > 0 && (() => {
                 const allImages = productDetail.images!.flatMap((g) => g.items).filter((img) => !!img.url);
                 return (
-                  <div className="rounded-lg border border-gray-700 bg-gray-800 px-4 py-4">
+                  <div className="w-75 shrink-0 rounded-lg border border-gray-700 bg-gray-800 px-4 py-4">
                     <div className="flex items-center justify-between mb-3">
                       <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">
-                        Images{selectedImages.size > 0 && <span className="ml-2 text-blue-400">({selectedImages.size} selected)</span>}
+                        <span>Images</span>
+                        {selectedImages.size > 0 && <span className="block text-blue-400">({selectedImages.size} selected)</span>}
                       </p>
                       <div className="flex items-center gap-2">
                         {updateImagesError && <span className="text-xs text-red-400">{updateImagesError}</span>}
@@ -847,7 +983,7 @@ export default function Home() {
                         )}
                       </div>
                     </div>
-                    <div className="grid grid-cols-6 sm:grid-cols-8 lg:grid-cols-12 gap-2">
+                    <div className="grid grid-cols-2 gap-2">
                       {allImages.map((img, i) => {
                         const isSelected = selectedImages.has(img.row_number);
                         return (
@@ -887,12 +1023,139 @@ export default function Home() {
                 );
               })()}
 
+              {/* Center: metadata */}
+              <div className="flex-1 min-w-0 space-y-2">
+              {/* Links field */}
+              <div className="rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 flex gap-4 items-center">
+                <span className="text-gray-400 text-sm w-32 shrink-0">Navigation</span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {[
+                    { label: "Drive Folder", val: selectedProduct!["Drive Folder link"] },
+                    { label: "Drive Sheet", val: selectedProduct!["Drive Sheets link"] },
+                    { label: "Document", val: productDetail.document_url },
+                  ].filter((l) => !!l.val).map(({ label, val }) => (
+                    <a key={label} href={val} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 rounded-lg border border-gray-600 px-3 py-1 text-xs text-gray-300 hover:text-white hover:border-gray-400 transition-colors">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                      {label}
+                    </a>
+                  ))}
+                </div>
+              </div>
+              {/* Row + Title + Metafields combined */}
+              <div className="rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 flex flex-col gap-2">
+                <div className="flex gap-4 items-baseline">
+                  <span className="text-gray-400 text-sm w-32 shrink-0">Row</span>
+                  <span className="text-gray-100 text-sm">{productDetail.row_number}</span>
+                </div>
+                <div className="h-px bg-gray-700" />
+                <div className="flex gap-4 items-baseline">
+                  <span className="text-gray-400 text-sm w-32 shrink-0">Title</span>
+                  <span className="text-gray-100 text-sm break-all">{productDetail.product_title}</span>
+                </div>
+                {productDetail.metafields && productDetail.metafields.flatMap((g) => g.items).filter((mf) => mf.Metafield).map((mf) => (
+                  <div key={`${mf.row_number}-${mf.Metafield}`} className="flex flex-col gap-2 border-t border-gray-700 pt-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex gap-4 items-baseline min-w-0 flex-1">
+                        <span className="text-gray-400 text-sm w-32 shrink-0 truncate" title={mf.Metafield}>{mf.Metafield}</span>
+                        {editingMetafield !== mf.row_number && (
+                          <span className="text-gray-100 text-sm break-all">{mf.value ?? ""}</span>
+                        )}
+                      </div>
+                      {editingMetafield !== mf.row_number ? (
+                        <button
+                          onClick={() => { setEditingMetafield(mf.row_number); setEditMetafieldValue(mf.value ?? ""); setSaveMetafieldError(null); }}
+                          className="text-xs text-gray-500 hover:text-indigo-400 shrink-0"
+                        >Edit</button>
+                      ) : (
+                        <div className="flex gap-2 shrink-0">
+                          <button
+                            onClick={() => updateMetafield(mf.row_number, mf.Metafield, editMetafieldValue)}
+                            disabled={savingMetafield}
+                            className="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-1 rounded disabled:opacity-50"
+                          >{savingMetafield ? "Saving…" : "Save"}</button>
+                          <button
+                            onClick={() => { setEditingMetafield(null); setSaveMetafieldError(null); }}
+                            className="text-xs text-gray-500 hover:text-gray-300"
+                          >Cancel</button>
+                        </div>
+                      )}
+                    </div>
+                    {editingMetafield === mf.row_number && (
+                      <div className="flex flex-col gap-1">
+                        {mf.Type === "single_line_text_field" && (
+                          <input
+                            type="text"
+                            value={editMetafieldValue}
+                            onChange={(e) => setEditMetafieldValue(e.target.value)}
+                            autoFocus
+                            className="w-full rounded bg-gray-900 border border-gray-600 px-3 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-indigo-500"
+                          />
+                        )}
+                        {mf.Type === "rich_text_field" && (
+                          <textarea
+                            rows={3}
+                            value={editMetafieldValue}
+                            onChange={(e) => setEditMetafieldValue(e.target.value)}
+                            autoFocus
+                            className="w-full rounded bg-gray-900 border border-gray-600 px-3 py-1.5 text-sm text-gray-100 focus:outline-none focus:border-indigo-500 resize-y"
+                          />
+                        )}
+                        {mf.Type === "file_reference" && (
+                          <div className="flex items-center gap-3">
+                            <button
+                              onClick={() => setMetafieldImageModal(true)}
+                              className="text-xs bg-gray-700 hover:bg-gray-600 text-gray-200 px-3 py-1.5 rounded"
+                            >Select image…</button>
+                            {editMetafieldValue && (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={editMetafieldValue} alt="" className="h-10 w-10 object-cover rounded border border-gray-600" />
+                            )}
+                          </div>
+                        )}
+                        {saveMetafieldError && (
+                          <p className="text-red-400 text-xs">{saveMetafieldError}</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {([
+                ["Shopify GID", productDetail.shopify_gid],
+              ] as [string, string][]).map(([label, val]) => val ? (
+                <div key={label} className="rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 flex flex-col gap-1">
+                  <span className="text-gray-400 text-xs">{label}</span>
+                  <span className="text-gray-100 text-sm break-all">{val}</span>
+                </div>
+              ) : null)}
+              </div>
+
+              {/* Right: links */}
+              <div className="w-75 shrink-0">
               {/* URLs */}
               {productDetail && (
                 <div className="rounded-lg border border-gray-700 bg-gray-800 px-4 py-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">Links</p>
-                    <div className="flex items-center gap-2">
+                  <div className="mb-3">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Links</p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {productDetail.urls.some((u) => u.images && u.images.length > 0) && (
+                        <button
+                          onClick={() => setShowImagesSidebar((v) => !v)}
+                          className={`flex items-center gap-1.5 rounded-lg border px-3 py-1 text-xs transition-colors ${
+                            showImagesSidebar
+                              ? "border-amber-600 text-amber-400 bg-amber-400/10"
+                              : "border-gray-600 text-gray-300 hover:text-white hover:border-gray-400"
+                          }`}
+                          aria-label="Toggle images sidebar"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          Images
+                        </button>
+                      )}
                       <button
                           onClick={() => {
                             const entry = prompts.find((p) => "Data Extractor" in p) ?? prompts[0];
@@ -923,6 +1186,78 @@ export default function Home() {
                       </button>
                     </div>
                   </div>
+                  {setLinksSuccess && (
+                    <p className="mb-3 text-xs text-green-400">Links saved successfully.</p>
+                  )}
+                  {settingLinks && (
+                    <form onSubmit={setProductLinksHandler} className="mb-3 rounded-lg border border-gray-700 bg-gray-900 p-3">
+                      <div className="space-y-2 mb-3">
+                        {productLinks.map((link, i) => (
+                          <div key={i} className="flex flex-col gap-1">
+                            <div className="flex gap-2">
+                              <input
+                                type="url"
+                                placeholder="https://..."
+                                value={link}
+                                onChange={(e) => {
+                                  setProductLinks((prev) => prev.map((l, j) => j === i ? e.target.value : l));
+                                  setLinkErrors((prev) => prev.map((err, j) => j === i ? null : err));
+                                }}
+                                className={`flex-1 rounded-lg border bg-gray-700 px-3 py-2 text-sm text-gray-100 placeholder-gray-500 focus:outline-none ${
+                                  linkErrors[i] ? "border-red-500 focus:border-red-500" : "border-gray-600 focus:border-blue-500"
+                                }`}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setProductLinks((prev) => prev.filter((_, j) => j !== i));
+                                  setLinkErrors((prev) => prev.filter((_, j) => j !== i));
+                                }}
+                                disabled={productLinks.length === 1}
+                                className="text-gray-500 hover:text-red-400 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                aria-label="Remove link"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </button>
+                            </div>
+                            {linkErrors[i] && <p className="text-xs text-red-400 pl-1">{linkErrors[i]}</p>}
+                          </div>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setProductLinks((prev) => [...prev, ""]);
+                          setLinkErrors((prev) => [...prev, null]);
+                        }}
+                        className="text-xs text-blue-400 hover:text-blue-300 mb-3 flex items-center gap-1"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Add link
+                      </button>
+                      {setLinksError && <p className="mb-2 text-xs text-red-400">{setLinksError}</p>}
+                      <div className="flex gap-2">
+                        <button
+                          type="submit"
+                          disabled={setLinksLoading}
+                          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {setLinksLoading ? "Saving..." : "Save"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setSettingLinks(false); setSetLinksError(null); setLinkErrors([null]); }}
+                          className="rounded-lg border border-gray-600 px-4 py-2 text-sm text-gray-400 hover:text-white"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  )}
                   {productDetail.urls.length > 0 && (
                   <div className="flex flex-col gap-2">
                     {productDetail.urls.map((entry) => (
@@ -949,7 +1284,7 @@ export default function Home() {
                             <button
                               type="button"
                               onClick={() => fetchProductData(entry)}
-                              disabled={fetchingData === entry.URL || !!(entry.title && entry.content) || fetchedUrls.has(entry.URL)}
+                              disabled={fetchingData.has(entry.URL) || !!(entry.title && entry.content) || fetchedUrls.has(entry.URL)}
                               aria-label="Fetch product data"
                               className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors disabled:cursor-not-allowed ${
                                 (entry.title && entry.content) || fetchedUrls.has(entry.URL)
@@ -957,7 +1292,7 @@ export default function Home() {
                                   : "text-gray-400 hover:text-blue-400 hover:bg-blue-400/10"
                               }`}
                             >
-                              {fetchingData === entry.URL ? (
+                              {fetchingData.has(entry.URL) ? (
                                 <>
                                   <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -1000,8 +1335,8 @@ export default function Home() {
                           </div>
                         </div>
                         {/* Card body */}
-                        <div className="px-4 py-2.5">
-                          <a href={entry.URL} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline text-sm break-all">{entry.URL}</a>
+                        <div className="px-4 py-2.5 min-w-0">
+                          <a href={entry.URL} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline text-sm truncate block" title={entry.URL}>{entry.URL}</a>
                         </div>
                       </div>
                     ))}
@@ -1009,11 +1344,133 @@ export default function Home() {
                   )}
                 </div>
               )}
+              </div>{/* end links column */}
             </div>
           )}
           </>}
         </div>
       </div>
+
+      {/* Images sidebar */}
+      {showImagesSidebar && productDetail && (
+        <div className="w-80 shrink-0 bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between border-b border-gray-700 px-4 py-3 shrink-0">
+              <p className="text-sm font-semibold text-white">
+                <span>Images from links</span>
+                {sidebarSelectedImages.size > 0 && <span className="block text-amber-400 font-normal text-xs">({sidebarSelectedImages.size} selected)</span>}
+              </p>
+              <div className="flex items-center gap-2">
+                {addImagesError && <span className="text-xs text-red-400 max-w-35 truncate" title={addImagesError}>{addImagesError}</span>}
+                {sidebarSelectedImages.size > 0 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setSidebarSelectedImages(new Set())}
+                      className="text-xs text-gray-400 hover:text-gray-200 transition-colors"
+                    >
+                      Clear
+                    </button>
+                    <button
+                      type="button"
+                      onClick={addImagesFromSidebar}
+                      disabled={addingImages}
+                      className="flex items-center gap-1 rounded-lg border border-amber-700 px-2.5 py-1 text-xs text-amber-400 hover:text-amber-300 hover:border-amber-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {addingImages ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                      ) : (
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                        </svg>
+                      )}
+                      {addingImages ? "Adding…" : "Add to product"}
+                    </button>
+                  </>
+                )}
+                <button
+                  onClick={() => setShowImagesSidebar(false)}
+                  className="text-gray-500 hover:text-white transition-colors"
+                  aria-label="Close sidebar"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-5">
+              {(() => {
+                const productImageUrls = new Set(
+                  (productDetail.images ?? []).flatMap((g) => g.items).map((img) => img.url)
+                );
+                return productDetail.urls.filter((e) => e.images && e.images.length > 0).map((entry) => (
+                <div key={entry.row_number}>
+                  <a
+                    href={entry.URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block text-xs text-blue-400 hover:underline break-all mb-2"
+                  >
+                    {entry.URL}
+                  </a>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {entry.images!.map((src, i) => {
+                      const isSelected = sidebarSelectedImages.has(src);
+                      const alreadyAdded = productImageUrls.has(src);
+                      return (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => setSidebarLightbox({ entry, index: i })}
+                          onContextMenu={(e) => {
+                            e.preventDefault();
+                            if (alreadyAdded) return;
+                            setSidebarSelectedImages((prev) => {
+                              const next = new Set(prev);
+                              if (next.has(src)) next.delete(src);
+                              else next.add(src);
+                              return next;
+                            });
+                          }}
+                          className={`relative rounded-md overflow-hidden border transition-all focus:outline-none aspect-square ${
+                            alreadyAdded
+                              ? "border-gray-600 opacity-40 cursor-default"
+                              : isSelected
+                              ? "border-amber-400 ring-2 ring-amber-400"
+                              : "border-gray-700 hover:opacity-80"
+                          }`}
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={src} alt={`Image ${i + 1}`} className="w-full h-full object-cover" />
+                          {alreadyAdded && (
+                            <div className="absolute inset-0 bg-gray-900/40 flex items-center justify-center">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400 drop-shadow" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+                          )}
+                          {isSelected && !alreadyAdded && (
+                            <div className="absolute inset-0 bg-amber-500/20 flex items-center justify-center">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-amber-300 drop-shadow" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ));
+              })()}
+              {productDetail.urls.every((e) => !e.images || e.images.length === 0) && (
+                <p className="text-sm text-gray-500">No images found in links.</p>
+              )}
+            </div>
+          </div>
+      )}
     </div>
   );
 }
