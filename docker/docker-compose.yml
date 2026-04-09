@@ -93,6 +93,8 @@ services:
         condition: service_healthy
       litellm-postgres:
         condition: service_healthy
+    ports:
+      - "8978:8978"
     networks:
       - n8n_net
       - litellm_net
