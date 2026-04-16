@@ -20,6 +20,16 @@ type Product = {
 
 type ProductLink = Record<string, unknown>;
 
+type ProductForm = {
+  title: string;
+  description: string;
+  status: string;
+  template_suffix: string;
+  price: string;
+  compare_at_price: string;
+  active: boolean;
+};
+
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [product, setProduct] = useState<Product | null>(null);
@@ -39,10 +49,21 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const [deletingImages, setDeletingImages] = useState(false);
   const [selectedSidebarImages, setSelectedSidebarImages] = useState<Set<string>>(new Set());
   const [addingImages, setAddingImages] = useState(false);
+  const [deletingLinkImages, setDeletingLinkImages] = useState(false);
   const [descModalOpen, setDescModalOpen] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [postingToShopify, setPostingToShopify] = useState(false);
-  const [metafields, setMetafields] = useState<Record<string, unknown>[] | null>(null);
+  const [savingProduct, setSavingProduct] = useState(false);
+  const [productSaveError, setProductSaveError] = useState<string | null>(null);
+  const [productForm, setProductForm] = useState<ProductForm>({
+    title: "",
+    description: "",
+    status: "",
+    template_suffix: "",
+    price: "0",
+    compare_at_price: "0",
+    active: false,
+  });
 
   useEffect(() => {
     if (!lightbox) return;
@@ -69,10 +90,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
   async function fetchAll() {
     try {
-      const [productRes, linksRes, metafieldsRes] = await Promise.all([
+      const [productRes, linksRes] = await Promise.all([
         fetch(`/api/products/${id}`),
         fetch(`/api/products/${id}/links`),
-        fetch(`/api/products/${id}/metafields`),
       ]);
 
       const productData = await productRes.json();
@@ -80,17 +100,20 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       const item: Product = Array.isArray(productData) ? productData[0] : (productData?.data ? (Array.isArray(productData.data) ? productData.data[0] : productData.data) : productData);
       if (!item) throw new Error("Product not found");
       setProduct(item);
+      setProductForm({
+        title: item.title ?? "",
+        description: item.description ?? "",
+        status: item.status ?? "",
+        template_suffix: item.template_suffix ?? "",
+        price: String(item.price ?? 0),
+        compare_at_price: String(item.compare_at_price ?? 0),
+        active: Boolean(item.active),
+      });
 
       const linksData = await linksRes.json();
       if (linksRes.ok) {
         const arr: ProductLink[] = Array.isArray(linksData) ? linksData : (Array.isArray(linksData?.data) ? linksData.data : []);
         setLinks(arr);
-      }
-
-      if (metafieldsRes.ok) {
-        const mfData = await metafieldsRes.json();
-        const arr = Array.isArray(mfData) ? mfData : (Array.isArray(mfData?.data) ? mfData.data : []);
-        setMetafields(arr);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
@@ -102,6 +125,35 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   useEffect(() => {
     fetchAll();
   }, [id]);
+
+  function toggleImageSelection(src: string) {
+    setSelectedImages((prev) => {
+      const next = new Set(prev);
+      next.has(src) ? next.delete(src) : next.add(src);
+      return next;
+    });
+  }
+
+  function getSidebarImageKey(linkId: number | null, src: string) {
+    return JSON.stringify({ linkId, src });
+  }
+
+  function parseSidebarImageKey(key: string): { linkId: number | null; src: string } | null {
+    try {
+      return JSON.parse(key) as { linkId: number | null; src: string };
+    } catch {
+      return null;
+    }
+  }
+
+  function toggleSidebarImageSelection(linkId: number | null, src: string) {
+    const key = getSidebarImageKey(linkId, src);
+    setSelectedSidebarImages((prev) => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
+  }
 
   async function handleFetchLink(linkId: number) {
     setFetchingLinkIds((prev) => new Set(prev).add(linkId));
@@ -142,10 +194,16 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   async function handleAddImages() {
     setAddingImages(true);
     try {
+      const images = Array.from(new Set(
+        Array.from(selectedSidebarImages)
+          .map((key) => parseSidebarImageKey(key)?.src)
+          .filter((src): src is string => Boolean(src))
+      ));
+
       await fetch(`/api/products/${id}/images/add`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ images: Array.from(selectedSidebarImages) }),
+        body: JSON.stringify({ images }),
       });
       const res = await fetch(`/api/products/${id}`);
       const data = await res.json();
@@ -156,6 +214,60 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       setSelectedSidebarImages(new Set());
     } finally {
       setAddingImages(false);
+    }
+  }
+
+  async function handleDeleteLinkImages() {
+    if (!links) return;
+
+    const removedByLink = new Map<number, Set<string>>();
+    for (const key of selectedSidebarImages) {
+      const parsed = parseSidebarImageKey(key);
+      if (!parsed || typeof parsed.linkId !== "number") continue;
+      if (!removedByLink.has(parsed.linkId)) {
+        removedByLink.set(parsed.linkId, new Set());
+      }
+      removedByLink.get(parsed.linkId)?.add(parsed.src);
+    }
+
+    const updates = links.flatMap((link) => {
+      const linkId = Number(link.id);
+      if (!Number.isFinite(linkId) || !removedByLink.has(linkId)) return [];
+
+      const currentImages: string[] = Array.isArray(link.images)
+        ? link.images.filter((img): img is string => typeof img === "string")
+        : Object.values(link).filter(
+            (v): v is string => typeof v === "string" && /\.(jpg|jpeg|png|gif|webp|svg)(\?|$)/i.test(v)
+          );
+
+      const removed = removedByLink.get(linkId) ?? new Set<string>();
+      const images = currentImages.filter((img) => !removed.has(img));
+
+      return [{ link_id: linkId, images }];
+    });
+
+    if (updates.length === 0) {
+      setSelectedSidebarImages(new Set());
+      return;
+    }
+
+    setDeletingLinkImages(true);
+    try {
+      await fetch(`/api/products/${id}/links/images/delete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ updates }),
+      });
+
+      const linksRes = await fetch(`/api/products/${id}/links`);
+      const linksData = await linksRes.json();
+      if (linksRes.ok) {
+        setLinks(Array.isArray(linksData) ? linksData : (Array.isArray(linksData?.data) ? linksData.data : []));
+      }
+
+      setSelectedSidebarImages(new Set());
+    } finally {
+      setDeletingLinkImages(false);
     }
   }
 
@@ -178,6 +290,49 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       setDeletingImages(false);
     }
   }
+
+  async function handleUpdateProduct() {
+    if (!product) return;
+
+    setSavingProduct(true);
+    setProductSaveError(null);
+    try {
+      const payload = {
+        ...product,
+        ...productForm,
+        id: Number(id),
+        product_id: Number(id),
+        price: Number(productForm.price || 0),
+        compare_at_price: Number(productForm.compare_at_price || 0),
+        active: productForm.active,
+      };
+
+      const res = await fetch(`/api/products/${id}/update`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error ?? `Failed (${res.status})`);
+
+      await fetchAll();
+    } catch (err) {
+      setProductSaveError(err instanceof Error ? err.message : "Unknown error");
+    } finally {
+      setSavingProduct(false);
+    }
+  }
+
+  const hasProductChanges = product
+    ? productForm.title !== (product.title ?? "") ||
+      productForm.description !== (product.description ?? "") ||
+      productForm.status !== (product.status ?? "") ||
+      productForm.template_suffix !== (product.template_suffix ?? "") ||
+      Number(productForm.price || 0) !== Number(product.price ?? 0) ||
+      Number(productForm.compare_at_price || 0) !== Number(product.compare_at_price ?? 0) ||
+      productForm.active !== Boolean(product.active)
+    : false;
 
   async function handleAddLinks(e: React.FormEvent) {
     e.preventDefault();
@@ -209,28 +364,41 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-900 via-slate-800 to-gray-900 flex items-start justify-center p-4">
-      <div className="bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden flex flex-col">
-        <div className="border-b border-gray-700 px-6 py-4 flex items-center gap-3">
-          <Link href="/" className="text-gray-500 hover:text-white transition-colors">
+      <div className="w-full max-w-screen-2xl bg-gray-900 border border-gray-700 rounded-xl shadow-2xl overflow-hidden flex flex-col">
+        <div className="border-b border-gray-700 px-6 py-4 flex items-center gap-3 min-w-0">
+          <Link href="/" className="shrink-0 text-gray-500 hover:text-white transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </Link>
-          <h1 className="text-xl font-bold text-white">{product?.title ?? `Product #${id}`}</h1>
+          <h1 className="flex-1 min-w-0 truncate text-xl font-bold text-white" title={productForm.title || product?.title || `Product #${id}`}>
+            {productForm.title || product?.title || `Product #${id}`}
+          </h1>
         </div>
-        <div className="px-6 py-6 flex-1 flex gap-6 items-start">
+        <div className="px-6 py-6 flex-1 flex gap-6 items-start w-full min-w-0">
           {product && (
             <div className="shrink-0 flex flex-col gap-2" style={{ width: 250 }}>
-              <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center justify-between gap-2 mb-1">
                 <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Images</h2>
-                {selectedImages.size > 0 && (
-                  <button
-                    onClick={handleDeleteImages}
-                    disabled={deletingImages}
-                    className="text-xs px-2 py-1 rounded border border-red-800 text-red-400 hover:border-red-500 hover:text-red-300 disabled:opacity-50 transition-colors"
-                  >
-                    {deletingImages ? "Removing…" : `Remove (${selectedImages.size})`}
-                  </button>
+                {selectedImages.size > 0 ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] text-red-300">{selectedImages.size} selected</span>
+                    <button
+                      onClick={() => setSelectedImages(new Set())}
+                      className="text-xs px-2 py-1 rounded border border-gray-700 text-gray-400 hover:border-gray-500 hover:text-white transition-colors"
+                    >
+                      Clear
+                    </button>
+                    <button
+                      onClick={handleDeleteImages}
+                      disabled={deletingImages}
+                      className="text-xs px-2 py-1 rounded border border-red-800 text-red-400 hover:border-red-500 hover:text-red-300 disabled:opacity-50 transition-colors"
+                    >
+                      {deletingImages ? "Removing…" : `Remove (${selectedImages.size})`}
+                    </button>
+                  </div>
+                ) : (
+                  <span className="text-[11px] text-gray-500">Select image(s) to remove</span>
                 )}
               </div>
               <div className="grid grid-cols-2 gap-2">
@@ -239,14 +407,25 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 return (
                   <div key={i} className="relative">
                     <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleImageSelection(src);
+                      }}
+                      className={`absolute top-1 right-1 z-10 rounded-full border px-2 py-0.5 text-[10px] font-medium transition-colors ${
+                        selected
+                          ? "border-red-500 bg-red-500/20 text-red-200"
+                          : "border-gray-600 bg-gray-900/80 text-gray-300 hover:border-gray-400 hover:text-white"
+                      }`}
+                      title={selected ? "Deselect image" : "Select image to remove"}
+                    >
+                      {selected ? "Selected" : "Select"}
+                    </button>
+                    <button
                       onClick={() => setLightbox({ images: product.images as string[], index: i })}
                       onContextMenu={(e) => {
                         e.preventDefault();
-                        setSelectedImages((prev) => {
-                          const next = new Set(prev);
-                          next.has(src) ? next.delete(src) : next.add(src);
-                          return next;
-                        });
+                        toggleImageSelection(src);
                       }}
                       className="focus:outline-none w-full"
                     >
@@ -274,7 +453,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               </div>
             </div>
           )}
-          <div style={{ width: 800 }}>
+          <div className="flex-1 min-w-0">
           {loading && <p className="text-sm text-gray-400">Loading…</p>}
           {error && <p className="text-sm text-red-400">{error}</p>}
           {product && (
@@ -299,6 +478,15 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                   </button>
                 )}
                 <span className="mr-auto" />
+                {hasProductChanges && (
+                  <button
+                    onClick={handleUpdateProduct}
+                    disabled={savingProduct}
+                    className="text-xs px-2 py-0.5 rounded border border-blue-700 text-blue-400 hover:border-blue-500 hover:text-blue-300 disabled:opacity-40 transition-colors"
+                  >
+                    {savingProduct ? "Saving…" : "Save"}
+                  </button>
+                )}
                 <button
                   onClick={async () => {
                     setGenerating(true);
@@ -309,52 +497,110 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                       setGenerating(false);
                     }
                   }}
-                  disabled={generating}
+                  disabled={generating || savingProduct}
                   className="text-xs px-2 py-0.5 rounded border border-gray-600 text-gray-400 hover:border-gray-400 hover:text-white disabled:opacity-40 transition-colors"
                 >
                   {generating ? "Generating…" : "Generate"}
                 </button>
-                <span className={`text-xs px-2 py-0.5 rounded-full border ${product.active ? "border-green-700 text-green-400" : "border-gray-600 text-gray-400"}`}>
-                  {product.active ? "Active" : "Inactive"}
+                <span className={`text-xs px-2 py-0.5 rounded-full border ${productForm.active ? "border-green-700 text-green-400" : "border-gray-600 text-gray-400"}`}>
+                  {productForm.active ? "Active" : "Inactive"}
                 </span>
                 {product.shopify_gid && (
-                  <span className="text-xs px-2 py-0.5 rounded-full border border-blue-700 text-blue-400 max-w-[180px] truncate" title={product.shopify_gid}>{product.shopify_gid}</span>
+                  <span className="text-xs px-2 py-0.5 rounded-full border border-blue-700 text-blue-400 max-w-45 truncate" title={product.shopify_gid}>{product.shopify_gid}</span>
                 )}
               </div>
-              <div className="px-4 py-3">
-                <h2 className="text-sm font-semibold text-gray-300">{product.title}</h2>
+              <div className="px-4 py-3 flex flex-col gap-4">
+                {productSaveError && <p className="text-sm text-red-400">{productSaveError}</p>}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <label className="flex flex-col gap-1">
+                    <span className="text-xs text-gray-500 uppercase tracking-wider">Title</span>
+                    <input
+                      type="text"
+                      value={productForm.title}
+                      onChange={(e) => setProductForm((prev) => ({ ...prev, title: e.target.value }))}
+                      disabled={savingProduct}
+                      className="bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-100 disabled:opacity-70"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1">
+                    <span className="text-xs text-gray-500 uppercase tracking-wider">Status</span>
+                    <input
+                      type="text"
+                      value={productForm.status}
+                      onChange={(e) => setProductForm((prev) => ({ ...prev, status: e.target.value }))}
+                      disabled={savingProduct}
+                      className="bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-100 disabled:opacity-70"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1">
+                    <span className="text-xs text-gray-500 uppercase tracking-wider">Price</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={productForm.price}
+                      onChange={(e) => setProductForm((prev) => ({ ...prev, price: e.target.value }))}
+                      disabled={savingProduct}
+                      className="bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-100 disabled:opacity-70"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1">
+                    <span className="text-xs text-gray-500 uppercase tracking-wider">Compare At Price</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={productForm.compare_at_price}
+                      onChange={(e) => setProductForm((prev) => ({ ...prev, compare_at_price: e.target.value }))}
+                      disabled={savingProduct}
+                      className="bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-100 disabled:opacity-70"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1 md:col-span-2">
+                    <span className="text-xs text-gray-500 uppercase tracking-wider">Template Suffix</span>
+                    <input
+                      type="text"
+                      value={productForm.template_suffix}
+                      onChange={(e) => setProductForm((prev) => ({ ...prev, template_suffix: e.target.value }))}
+                      disabled={savingProduct}
+                      className="bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-100 disabled:opacity-70"
+                    />
+                  </label>
+                  <label className="md:col-span-2 flex items-center gap-2 text-sm text-gray-300">
+                    <input
+                      type="checkbox"
+                      checked={productForm.active}
+                      onChange={(e) => setProductForm((prev) => ({ ...prev, active: e.target.checked }))}
+                      disabled={savingProduct}
+                      className="h-4 w-4 rounded border-gray-600 bg-gray-900"
+                    />
+                    Active
+                  </label>
+                </div>
+
+                <div className="flex items-start gap-2">
+                  <label className="flex-1 flex flex-col gap-1">
+                    <span className="text-xs text-gray-500 uppercase tracking-wider">Description</span>
+                    <textarea
+                      value={productForm.description}
+                      onChange={(e) => setProductForm((prev) => ({ ...prev, description: e.target.value }))}
+                      disabled={savingProduct}
+                      rows={8}
+                      className="bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-100 disabled:opacity-70 resize-y"
+                    />
+                  </label>
+                  {product.description && (
+                    <button
+                      onClick={() => setDescModalOpen(true)}
+                      className="shrink-0 text-gray-500 hover:text-gray-300 transition-colors mt-6"
+                      title="View full description"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20A10 10 0 0012 2z" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
               </div>
-              <div className="px-4 py-3 flex items-start gap-2">
-                <div className="text-gray-300 text-sm flex-1 line-clamp-3 prose prose-invert prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: product.description ?? "" }} />
-                {product.description && (
-                  <button
-                    onClick={() => setDescModalOpen(true)}
-                    className="shrink-0 text-gray-500 hover:text-gray-300 transition-colors mt-0.5"
-                    title="View full description"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20A10 10 0 0012 2z" />
-                    </svg>
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-          {metafields && metafields.length > 0 && (
-            <div className="rounded-lg border border-gray-700 bg-gray-800 divide-y divide-gray-700 mt-4">
-              <div className="px-4 py-2">
-                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Metafields</span>
-              </div>
-              {metafields.map((mf, i) => {
-                const key = (mf.key ?? mf.namespace ?? String(i)) as string;
-                const value = mf.value ?? mf.value_type ?? "";
-                return (
-                  <div key={i} className="px-4 py-3 flex gap-4">
-                    <span className="text-gray-400 text-sm w-48 shrink-0 truncate" title={key}>{key}</span>
-                    <span className="text-gray-100 text-sm break-all">{String(value)}</span>
-                  </div>
-                );
-              })}
             </div>
           )}
           </div>
@@ -460,7 +706,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       </div>
 
       {imagesSidebarOpen && (() => {
-        type ImageGroup = { label: string; images: string[] };
+        type ImageGroup = { label: string; linkId: number | null; images: string[] };
         const groups: ImageGroup[] = (links ?? []).flatMap((link, li) => {
           const imgs: string[] = Array.isArray(link.images)
             ? (link.images as string[])
@@ -472,7 +718,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             (v) => typeof v === "string" && (v as string).startsWith("http") && !/\.(jpg|jpeg|png|gif|webp|svg)(\?|$)/i.test(v as string)
           ) as string | undefined;
           const label = (link.title ?? url ?? `Link ${li + 1}`) as string;
-          return [{ label, images: imgs }];
+          const rawLinkId = link.id;
+          const linkId = typeof rawLinkId === "number" ? rawLinkId : Number(rawLinkId);
+          return [{ label, linkId: Number.isFinite(linkId) ? linkId : null, images: imgs }];
         });
         const allImages = groups.flatMap((g) => g.images);
         let globalIndex = 0;
@@ -482,13 +730,23 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 <h2 className="text-sm font-semibold text-gray-300 uppercase tracking-wider">All Images</h2>
                 <div className="flex items-center gap-2">
                   {selectedSidebarImages.size > 0 && (
-                    <button
-                      onClick={handleAddImages}
-                      disabled={addingImages}
-                      className="text-xs px-2 py-1 rounded border border-blue-700 text-blue-400 hover:border-blue-500 hover:text-blue-300 disabled:opacity-50 transition-colors"
-                    >
-                      {addingImages ? "Adding…" : `Add (${selectedSidebarImages.size})`}
-                    </button>
+                    <>
+                      <span className="text-[11px] text-gray-400">{selectedSidebarImages.size} selected</span>
+                      <button
+                        onClick={handleAddImages}
+                        disabled={addingImages || deletingLinkImages}
+                        className="text-xs px-2 py-1 rounded border border-blue-700 text-blue-400 hover:border-blue-500 hover:text-blue-300 disabled:opacity-50 transition-colors"
+                      >
+                        {addingImages ? "Adding…" : `Add (${selectedSidebarImages.size})`}
+                      </button>
+                      <button
+                        onClick={handleDeleteLinkImages}
+                        disabled={deletingLinkImages || addingImages}
+                        className="text-xs px-2 py-1 rounded border border-red-800 text-red-400 hover:border-red-500 hover:text-red-300 disabled:opacity-50 transition-colors"
+                      >
+                        {deletingLinkImages ? "Removing…" : `Remove (${selectedSidebarImages.size})`}
+                      </button>
+                    </>
                   )}
                   <button onClick={() => { setImagesSidebarOpen(false); setSelectedSidebarImages(new Set()); }} className="text-gray-500 hover:text-white transition-colors text-xl leading-none">&times;</button>
                 </div>
@@ -505,12 +763,27 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                         <p className="text-xs text-gray-500 truncate mb-2" title={group.label}>{group.label}</p>
                         <div className="grid grid-cols-4 gap-2">
                           {group.images.map((src, i) => {
-                            const sel = selectedSidebarImages.has(src);
+                            const sel = selectedSidebarImages.has(getSidebarImageKey(group.linkId, src));
                             return (
                               <div key={i} className="relative">
                                 <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleSidebarImageSelection(group.linkId, src);
+                                  }}
+                                  className={`absolute top-1 right-1 z-10 rounded-full border px-2 py-0.5 text-[10px] font-medium transition-colors ${
+                                    sel
+                                      ? "border-red-500 bg-red-500/20 text-red-200"
+                                      : "border-gray-600 bg-gray-900/80 text-gray-300 hover:border-gray-400 hover:text-white"
+                                  }`}
+                                  title={sel ? "Deselect image" : "Select image"}
+                                >
+                                  {sel ? "Selected" : "Select"}
+                                </button>
+                                <button
                                   onClick={() => setLightbox({ images: allImages, index: startIndex + i })}
-                                  onContextMenu={(e) => { e.preventDefault(); setSelectedSidebarImages((prev) => { const next = new Set(prev); next.has(src) ? next.delete(src) : next.add(src); return next; }); }}
+                                  onContextMenu={(e) => { e.preventDefault(); toggleSidebarImageSelection(group.linkId, src); }}
                                   className="focus:outline-none w-full"
                                 >
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -537,7 +810,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       })()}
 
       {lightbox && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80" onClick={() => setLightbox(null)}>
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/80" onClick={() => setLightbox(null)}>
           <div className="relative flex items-center justify-center max-w-5xl max-h-[90vh] p-4" onClick={(e) => e.stopPropagation()}>
             <button onClick={() => setLightbox(null)} className="absolute top-2 right-2 text-gray-400 hover:text-white text-2xl leading-none z-10">&times;</button>
             {lightbox.images.length > 1 && (
@@ -601,7 +874,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                     {fields.map(([key, val]) => (
                       <div key={key}>
                         <p className="text-xs text-gray-500 uppercase tracking-wider mb-1">{key}</p>
-                        <p className="text-sm text-gray-100 whitespace-pre-wrap break-words">{String(val ?? "")}</p>
+                        <p className="text-sm text-gray-100 whitespace-pre-wrap wrap-break-word">{String(val ?? "")}</p>
                       </div>
                     ))}
                     {images.length > 0 && (
