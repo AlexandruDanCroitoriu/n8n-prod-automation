@@ -1,5 +1,7 @@
+import { ensureProductImageGids } from "../shopify-image-sync";
+
 export async function POST(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
@@ -12,7 +14,16 @@ export async function POST(
     return Response.json({ error: "Webhook not configured" }, { status: 500 });
   }
 
+  const productId = Number(id);
   const credentials = Buffer.from(`${username}:${password}`).toString("base64");
+
+  try {
+    await ensureProductImageGids(productId, baseUrl, credentials, new URL(req.url).origin);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Failed to upload product images before Shopify publish";
+    console.error("[post-to-shopify] image sync error", error);
+    return Response.json({ error: message }, { status: 502 });
+  }
 
   const res = await fetch(`${baseUrl}/sp_product_post_to_shopify`, {
     method: "POST",
@@ -20,7 +31,7 @@ export async function POST(
       Authorization: `Basic ${credentials}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ product_id: Number(id) }),
+    body: JSON.stringify({ product_id: productId }),
   });
 
   if (!res.ok) {

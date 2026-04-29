@@ -1,0 +1,2060 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "path": "sp_products",
+        "authentication": "basicAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1568,
+        368
+      ],
+      "id": "7b410db7-924d-42f9-8645-631e23de99fe",
+      "name": "Webhook",
+      "webhookId": "083c3a3b-a0cc-4a24-80af-92d050bfd8a6",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "4C7ai10q7tTpKD6R",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -960,
+        368
+      ],
+      "id": "42cba19c-e615-4008-9d31-e370bda682a6",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "products",
+        "returnAll": true
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -1376,
+        368
+      ],
+      "id": "e9d0b618-4864-487c-81ba-2a8f849055d7",
+      "name": "Get Products",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Mo2PVhNua3Os6151",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -1168,
+        368
+      ],
+      "id": "52bfcab9-e0f2-4589-be8e-50585a3c13cd",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "path": "sp_product_data",
+        "authentication": "basicAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -576,
+        368
+      ],
+      "id": "b7bfd1cd-750b-4eb2-98a2-940689685ba3",
+      "name": "Webhook1",
+      "webhookId": "083c3a3b-a0cc-4a24-80af-92d050bfd8a6",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "4C7ai10q7tTpKD6R",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -176,
+        368
+      ],
+      "id": "e7ab7b34-4153-499e-bb28-9803534a8f5f",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "products",
+        "returnAll": true,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $json.query.id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -384,
+        368
+      ],
+      "id": "5a5ebc70-73b7-4b2a-8108-db2926caa5c7",
+      "name": "Get Products1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "Mo2PVhNua3Os6151",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# sp_products\n",
+        "height": 304,
+        "width": 848
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1616,
+        272
+      ],
+      "typeVersion": 1,
+      "id": "6f860745-6bc7-498c-915e-f29714ff59d2",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "# sp_product_data\n",
+        "height": 304,
+        "width": 848
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -624,
+        272
+      ],
+      "typeVersion": 1,
+      "id": "ebf3f905-1f61-4c7c-9c87-cccfbb803ebe",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "# sp_product_links\n",
+        "height": 304,
+        "width": 848
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1056,
+        -80
+      ],
+      "typeVersion": 1,
+      "id": "a41758ed-de30-49f1-943d-d90721296ac9",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "path": "sp_product_links",
+        "authentication": "basicAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        1104,
+        32
+      ],
+      "id": "ac0b03bd-6735-49bc-a9be-e8a437e62943",
+      "name": "Webhook2",
+      "webhookId": "083c3a3b-a0cc-4a24-80af-92d050bfd8a6",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "4C7ai10q7tTpKD6R",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1712,
+        32
+      ],
+      "id": "2e0f0285-e0cd-416d-bfdf-6d6a720319ab",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "links",
+        "returnAll": true,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "product_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.query.id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1296,
+        32
+      ],
+      "id": "41cf9dd7-740d-49dc-a905-d3aecc05efe1",
+      "name": "Get Products2",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Mo2PVhNua3Os6151",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1504,
+        32
+      ],
+      "id": "7a6db4e4-4450-4bf5-9f77-8dafef2b586c",
+      "name": "Aggregate1"
+    },
+    {
+      "parameters": {
+        "content": "# sp_add_product_links\n",
+        "height": 304,
+        "width": 848
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1056,
+        256
+      ],
+      "typeVersion": 1,
+      "id": "60538ac3-6544-406a-bbb4-2041cd77d1e1",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "body.links",
+        "include": "allOtherFields",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1296,
+        368
+      ],
+      "id": "6865353f-7893-48ac-95ab-d4786506a255",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sp_add_product_links",
+        "authentication": "basicAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        1104,
+        368
+      ],
+      "id": "6dc7d4b5-e941-47ab-87e9-cc8ca91b399f",
+      "name": "Webhook3",
+      "webhookId": "083c3a3b-a0cc-4a24-80af-92d050bfd8a6",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "4C7ai10q7tTpKD6R",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1712,
+        368
+      ],
+      "id": "6435e96e-85d8-42d4-9583-5a00f60895db",
+      "name": "Respond to Webhook3"
+    },
+    {
+      "parameters": {
+        "tableId": "links",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "product_id",
+              "fieldValue": "={{ $json.body.product_id }}"
+            },
+            {
+              "fieldId": "url",
+              "fieldValue": "={{ $json['body.links'] }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1504,
+        368
+      ],
+      "id": "80a9feda-c839-418f-a465-6939a85d8aeb",
+      "name": "Get Products3",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Mo2PVhNua3Os6151",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# sp_delete_product_links\n",
+        "height": 304,
+        "width": 848
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1056,
+        592
+      ],
+      "typeVersion": 1,
+      "id": "7439cacb-42a8-48ef-a742-cf1adbb8993c",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sp_delete_product_link",
+        "authentication": "basicAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        1104,
+        704
+      ],
+      "id": "ddeb5499-d7f5-4f3c-b20f-4a32e3243271",
+      "name": "Webhook4",
+      "webhookId": "083c3a3b-a0cc-4a24-80af-92d050bfd8a6",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "4C7ai10q7tTpKD6R",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1504,
+        704
+      ],
+      "id": "25b83f21-a2af-4684-8a6b-6f9ef46eb04e",
+      "name": "Respond to Webhook4"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "tableId": "links",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $json.body.link_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1296,
+        704
+      ],
+      "id": "850b66ca-7c81-4283-a5f8-befe964baa2c",
+      "name": "Get Products4",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "Mo2PVhNua3Os6151",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# sp_fetch_product_link_details\n",
+        "height": 480,
+        "width": 1860
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1056,
+        944
+      ],
+      "typeVersion": 1,
+      "id": "91e168c1-0346-4b64-940e-72a4c7470e02",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1504,
+        1056
+      ],
+      "id": "01f592ef-91d5-4ba9-8a4b-3b279ce6867b",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "function normalize(url) {\n  if (!url || typeof url !== 'string') return null;\n  let u = url.trim();\n  if (u.startsWith('//')) u = 'https:' + u;\n  return u;\n}\n\nfunction baseKey(url) {\n  return url\n    .toLowerCase()\n    .replace(/_\\d+x\\d+(?=\\.\\w+(\\?|$))/, '')   // Shopify sizes\n    .replace(/-\\d+x\\d+(?=\\.\\w+(\\?|$))/, '')   // Woo sizes\n    .replace(/@2x(?=\\.\\w+(\\?|$))/, '')        // Retina suffix\n    .replace(/_grande(?=\\.\\w+(\\?|$))/, '')    // Shopify grande\n    .replace(/\\?.*$/, '');                    // Remove query\n}\n\nfunction score(url) {\n  const u = url.toLowerCase();\n  let s = 0;\n\n  if (/@2x(?=\\.\\w+(\\?|$))/.test(u)) s += 60;\n  if (/(2048x2048|2048x1860)/.test(u)) s += 80;\n  else if (/(1728x1728|1728x1569)/.test(u)) s += 70;\n  else if (/(1512x1512|1512x1373)/.test(u)) s += 60;\n  else if (/(1296x1296|1296x1177)/.test(u)) s += 50;\n  else if (/(1200x1200|1080x1080|1080x981)/.test(u)) s += 40;\n  else if (/(900x900|900x817)/.test(u)) s += 30;\n  else if (/(720x720|720x654)/.test(u)) s += 20;\n  else if (/(540x540|540x490)/.test(u)) s += 10;\n\n  if (u.includes('_grande')) s += 35;\n  if (u.includes('original') || u.includes('master')) s += 90;\n\n  if (/(180x180|180x163|360x360|360x327|100x100|120x120|150x150|200x200|240x240|300x300)/.test(u)) s -= 100;\n  if (/(icon|logo|sprite|badge|avatar|banner|thumb|placeholder)/.test(u)) s -= 150;\n\n  return s;\n}\n\nreturn items.map(item => {\n  const raw = (item.json.output?.product_image_links || [])\n    .map(normalize)\n    .filter(Boolean);\n\n  const groups = new Map();\n\n  for (const url of raw) {\n    const key = baseKey(url);\n    const sc = score(url);\n\n    if (!groups.has(key) || sc > groups.get(key).score) {\n      groups.set(key, { url, score: sc });\n    }\n  }\n\n  const best = [...groups.values()]\n    .sort((a, b) => b.score - a.score)\n    .map(x => x.url);\n\n  item.json.output.product_image_links = best;\n  return item;\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2256,
+        1056
+      ],
+      "id": "25a4b73e-2582-4568-aa09-04632998ade6",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"product_title\": \"Modern Living Room Sofa\",\n  \"product_description\": \"A modern sofa designed for stylish living spaces.\",\n  \"product_image_links\": [\n    \"https://example.com/image1.jpg\",\n    \"https://example.com/image2.webp\"\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2064,
+        1232
+      ],
+      "id": "2f39e7ca-72c0-4da4-b8f2-22588d548d2f",
+      "name": "Json Output Parser1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Extract the product title, full product description, specifications, all product related information, and product image URLs.\n\nRules:\n- No explanations, JSON only.\n- Extract ALL product-related images from gallery, structured data, srcset, data-zoom/data-src, and img tags.\n- Include all resolutions/variants (do NOT deduplicate).\n- Treat visually different gallery images as separate even if filenames are similar.\n- Exclude logos, icons, UI elements, banners, payment icons, placeholders.\n- Absolute URLs only.\n\nDATA:\n{{ $json.cleanedHtml }}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1920,
+        1056
+      ],
+      "id": "d1eca4b9-8604-47f8-987b-80714a12b836",
+      "name": "Data Extractor"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5.4",
+          "mode": "list",
+          "cachedResultName": "gpt-5.4"
+        },
+        "builtInTools": {
+          "webSearch": {
+            "searchContextSize": "high"
+          }
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1920,
+        1232
+      ],
+      "id": "5696e2ac-8947-4bbc-8055-ee9e8d6d1388",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "6Qc88CCsFZJmM9Kw",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "scrape",
+        "url": "={{ $json.URL }}",
+        "scrapeOptions": {
+          "options": {
+            "formats": {
+              "format": [
+                {
+                  "type": "json",
+                  "prompt": "You are extracting data from a product page. Extract the following information\n\nProduct Title\nProduct Description\nSpecifications\nExtract all product image URLs from the page\n\nOutput Requirements:\nReturn only valid JSON.\n\nExpected JSON structure:\n{\n  \"title\": \"\",\n  \"description\": \"\",\n  \"specifications\": {},\n  \"reviews\": [\n    {\n      \"name\": \"\",\n      \"rating\": \"\",\n      \"text\": \"\",\n      \"date\": \"\"\n    }\n  ],\n  \"review_images\": [],\n  \"product_images\": []\n}",
+                  "schema": "{\n  \"title\": \"\",\n  \"description\": \"\",\n  \"specifications\": [],\n  \"product_images\": []\n}"
+                },
+                {
+                  "type": "links"
+                },
+                {
+                  "type": "html"
+                }
+              ]
+            },
+            "headers": {},
+            "waitFor": 60000,
+            "timeout": 300000,
+            "actions": {
+              "items": [
+                {
+                  "milliseconds": 3000
+                }
+              ]
+            }
+          }
+        },
+        "requestOptions": {}
+      },
+      "type": "@mendable/n8n-nodes-firecrawl.firecrawl",
+      "typeVersion": 1,
+      "position": [
+        1504,
+        1232
+      ],
+      "id": "a6e0735f-9704-4f99-a6fc-c22d46f51634",
+      "name": "/scrape",
+      "credentials": {
+        "firecrawlApi": {
+          "id": "9X1RgGDd7DHTvqTC",
+          "name": "Firecrawl account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "links",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "keyValue": "={{ $json.body.link_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1312,
+        1056
+      ],
+      "id": "d54e760c-e27c-438e-8382-4a54e46964f5",
+      "name": "Get a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "Mo2PVhNua3Os6151",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "links",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Get a row').item.json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "title",
+              "fieldValue": "={{ $json.output.product_title }}"
+            },
+            {
+              "fieldId": "content",
+              "fieldValue": "={{ $json.output.product_description }}"
+            },
+            {
+              "fieldId": "images",
+              "fieldValue": "={{ $json.output.product_image_links }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2480,
+        1056
+      ],
+      "id": "2ed71ffc-41e7-41a4-9dd6-c1953e632e47",
+      "name": "Update a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "Mo2PVhNua3Os6151",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sp_fetch_product_link_details",
+        "authentication": "basicAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        1104,
+        1056
+      ],
+      "id": "a49f6633-634a-436d-87c0-7f4405fe8fca",
+      "name": "Webhook5",
+      "webhookId": "083c3a3b-a0cc-4a24-80af-92d050bfd8a6",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "4C7ai10q7tTpKD6R",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2704,
+        1056
+      ],
+      "id": "7ca09195-0af5-4813-93bf-f760cd27e00e",
+      "name": "Respond to Webhook5"
+    },
+    {
+      "parameters": {
+        "jsCode": "const html = $json.body || $json.data || $json.html || '';\n\nif (!html) {\n  return [{ json: { cleanedHtml: '', error: 'No HTML found in input' } }];\n}\n\nlet cleaned = html;\n\n// Remove only very low-risk content\ncleaned = cleaned.replace(/<!--[\\s\\S]*?-->/g, ''); // comments\ncleaned = cleaned.replace(/<style\\b[^>]*>[\\s\\S]*?<\\/style>/gi, '');\ncleaned = cleaned.replace(/<noscript\\b[^>]*>[\\s\\S]*?<\\/noscript>/gi, '');\ncleaned = cleaned.replace(/<svg\\b[^>]*>[\\s\\S]*?<\\/svg>/gi, '');\n\n// Keep all scripts because some sites store product data there\n// especially window.__INITIAL_STATE__, __NEXT_DATA__, etc.\n\n// Collapse whitespace a bit\ncleaned = cleaned\n  .replace(/\\s{2,}/g, ' ')\n  .replace(/>\\s+</g, '><')\n  .trim();\n\nreturn [{\n  json: {\n    originalLength: html.length,\n    cleanedLength: cleaned.length,\n    reductionPercent: Math.round((1 - cleaned.length / html.length) * 100),\n    cleanedHtml: cleaned\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1712,
+        1056
+      ],
+      "id": "e7d92077-6ba3-4348-a2cb-0d4de8b43222",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "content": "# sp_product_data_generate\n",
+        "height": 528,
+        "width": 1136
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -624,
+        976
+      ],
+      "typeVersion": 1,
+      "id": "f304229f-866f-4faa-a02c-f24b43750dfd",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "links",
+        "returnAll": true,
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "product_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        1072
+      ],
+      "id": "0b8c1546-9387-4d95-9e28-2d84af38cde7",
+      "name": "Get many rows",
+      "credentials": {
+        "supabaseApi": {
+          "id": "Mo2PVhNua3Os6151",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analizează următoarele date despre produs, colectate din mai multe surse, apoi generează conținut eCommerce optimizat pentru piața din România.\n\n==================================================\nCÂMPURI OBLIGATORII DE GENERAT\n==================================================\n\n1. title\n- titlu produs optimizat SEO\n- clar, natural, orientat spre conversie\n- fără brand, magazin, producător, marketplace\n- fără CAPS LOCK inutil\n- maxim 65 caractere recomandat\n\n2. description\n- descriere completă în HTML valid\n- bine structurată, gata de publicare\n- ton comercial profesionist\n- convingătoare, clară, ușor de citit\n\n3. tabel_specificatii_tehnice_multiline\n- output EXCLUSIV în format HTML table\n- tabel complet gata de publicare\n\n4. showoff_1_richtext\n5. showoff_2_richtext\n6. showoff_3_richtext\n\n- HTML valid\n- headline bold max 20 caractere\n- text scurt max 20 caractere per linie\n- focus pe motive rapide de cumpărare\n- orientat spre public român\n\n7. section_1_title\n- maxim 5 cuvinte\n- scurt, impactant\n- orientat pe beneficii\n\n8. section_2_title\n- maxim 5 cuvinte\n- clar, urgent, orientat spre comandă\n\n9. section_1_description_rich\n- HTML valid\n- 3 beneficii cheie\n- fiecare beneficiu = headline bold + explicație scurtă\n\n10. section_2_description_rich\n- HTML valid\n- argumente finale de cumpărare\n- ton direct, urgent\n- focus pe finalizarea comenzii\n\n==================================================\nREGULI GENERALE OBLIGATORII\n==================================================\n\n- Elimină orice branding din toate câmpurile\n- Nu include brand, magazin, producător, distribuitor sau marketplace\n- Nu include sloganuri de companie\n- Nu inventa specificații sau funcții inexistente\n- Nu completa artificial informații lipsă\n- Nu genera câmpuri imagine / file_reference\n- Nu include explicații în output\n- Limba română corectă, cu diacritice\n- Stil modern eCommerce România\n\n==================================================\nREGULI PENTRU DESCRIPTION\n==================================================\n\nDescrierea trebuie să includă TOATE informațiile relevante disponibile.\n\nInclude obligatoriu:\n- caracteristici principale\n- specificații tehnice\n- beneficii pentru utilizator\n- cazuri de utilizare\n- moduri de folosire\n- materiale\n- dimensiuni\n- compatibilitate (dacă există)\n- conținut pachet\n- orice alte detalii utile\n\nDacă aceeași informație apare de mai multe ori:\n- păstreaz-o o singură dată\n- reformulează clar\n\nNu omite informații utile.\n\nStructură recomandată:\n\n<h2>Prezentare</h2>\n<p>...</p>\n\n<h2>Beneficii</h2>\n<ul>\n<li>...</li>\n</ul>\n\n<h2>Caracteristici</h2>\n\n<h2>Specificații tehnice</h2>\n\n<h2>Utilizare</h2>\n\n<h2>Conținut pachet</h2>\n\n==================================================\nREGULI PENTRU tabel_specificatii_tehnice_multiline\n==================================================\n\n- output obligatoriu în HTML table\n- fără text în afara tabelului\n- fără markdown\n- 2 coloane:\n  coloana 1 = nume specificație\n  coloana 2 = valoare\n- fiecare specificație pe rând separat\n- numele specificației în <strong>\n- stil inline obligatoriu\n- minim 8 rânduri dacă există date suficiente\n- doar specificații reale\n- dacă lipsește o valoare, nu inventa\n\nFormat obligatoriu:\n\n<table style=\"width:100%; border-collapse:collapse; font-size:13px; line-height:1.4;\">\n  <tr>\n    <td style=\"padding:6px; border:1px solid #ddd;\"><strong>Caracteristică</strong></td>\n    <td style=\"padding:6px; border:1px solid #ddd;\">Valoare</td>\n  </tr>\n  <tr>\n    <td style=\"padding:6px; border:1px solid #ddd;\"><strong>Caracteristică</strong></td>\n    <td style=\"padding:6px; border:1px solid #ddd;\">Valoare</td>\n  </tr>\n</table>\n\n==================================================\nREGULI PENTRU showoff_1_richtext / 2 / 3\n==================================================\n\nExemplu:\n\n<b>Montaj Rapid</b><br>\nGata imediat\n\n==================================================\nREGULI PENTRU section_1_description_rich\n==================================================\n\nExemplu:\n\n<p><b>Ușor de folosit</b> Instalare rapidă.</p>\n<p><b>Rezistent</b> Utilizare zilnică.</p>\n<p><b>Eficient</b> Economisește timp.</p>\n\n==================================================\nREGULI PENTRU section_2_description_rich\n==================================================\n\nExemplu:\n\n<p><b>Comandă acum</b> și profită de avantajele produsului.</p>\n<p>Stoc limitat disponibil.</p>\n\n==================================================\nFORMAT OUTPUT\n==================================================\n\nReturnează EXCLUSIV un obiect JSON valid, fără text suplimentar.\n\n==================================================\nDATE INPUT\n==================================================\n\nDate Titles:\n{{ $json.title }}\n\nDate Description:\n{{ $json.content }}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        224,
+        1072
+      ],
+      "id": "9911222f-46d0-41ef-8620-3e31c7b26178",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5.4",
+          "mode": "list",
+          "cachedResultName": "gpt-5.4"
+        },
+        "builtInTools": {},
+        "options": {
+          "textFormat": {
+            "textOptions": {
+              "type": "json_object"
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        1280
+      ],
+      "id": "86a9b975-bca8-4680-b29b-4753fffc0e83",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "6Qc88CCsFZJmM9Kw",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"product_title\": \"\",\n  \"description_html\": \"\",\n  \"tabel_specificatii_tehnice_multiline\": \"\",\n  \"showoff_1_richtext\": \"\",\n  \"showoff_2_richtext\": \"\",\n  \"showoff_3_richtext\": \"\",\n  \"section_1_title\": \"\",\n  \"section_2_title\": \"\",\n  \"section_1_description_rich\": \"\",\n  \"section_2_description_rich\": \"\",\n  \"section_1_image\": \"\",\n  \"section_2_image\": \"\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        368,
+        1280
+      ],
+      "id": "fa546508-efb5-49f1-8c93-1209c56dbbdd",
+      "name": "Structured Output Parser",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sp_product_data_generate",
+        "authentication": "basicAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -576,
+        1072
+      ],
+      "id": "4386dc56-32b4-45e0-91d6-1dab57eb061a",
+      "name": "Webhook8",
+      "webhookId": "083c3a3b-a0cc-4a24-80af-92d050bfd8a6",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "4C7ai10q7tTpKD6R",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -368,
+        1312
+      ],
+      "id": "394f7f85-2dce-4473-947a-645e4f13dcc7",
+      "name": "Respond to Webhook8"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "products",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "keyValue": "={{ $json.body.product_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        1072
+      ],
+      "id": "d10400d3-7638-445c-9286-92f60935abe4",
+      "name": "Get a row3",
+      "credentials": {
+        "supabaseApi": {
+          "id": "Mo2PVhNua3Os6151",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "title"
+            },
+            {
+              "fieldToAggregate": "content"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        48,
+        1072
+      ],
+      "id": "89b1ba9e-4c1a-46a4-9e44-3e025c3ad791",
+      "name": "Aggregate2"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "products",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Get a row3').item.json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "title",
+              "fieldValue": "={{ $json.output.product_title }}"
+            },
+            {
+              "fieldId": "description",
+              "fieldValue": "={{ $json.output.description_html }}"
+            },
+            {
+              "fieldId": "metafields",
+              "fieldValue": "={{\n[\n  {\n    namespace: \"custom\",\n    key: \"tabel_specificatii_tehnice_multiline\",\n    type: \"multi_line_text_field\",\n    value: $json.output.tabel_specificatii_tehnice_multiline || \"\"\n  },\n  {\n    namespace: \"custom\",\n    key: \"showoff_1_richtext\",\n    type: \"rich_text_field\",\n    value: $json.output.showoff_1_richtext || \"\"\n  },\n  {\n    namespace: \"custom\",\n    key: \"showoff_2_richtext\",\n    type: \"rich_text_field\",\n    value: $json.output.showoff_2_richtext || \"\"\n  },\n  {\n    namespace: \"custom\",\n    key: \"showoff_3_richtext\",\n    type: \"rich_text_field\",\n    value: $json.output.showoff_3_richtext || \"\"\n  },\n  {\n    namespace: \"custom\",\n    key: \"section_1_title\",\n    type: \"single_line_text_field\",\n    value: $json.output.section_1_title || \"\"\n  },\n  {\n    namespace: \"custom\",\n    key: \"section_2_title\",\n    type: \"single_line_text_field\",\n    value: $json.output.section_2_title || \"\"\n  },\n  {\n    namespace: \"custom\",\n    key: \"section_1_description_rich\",\n    type: \"rich_text_field\",\n    value: $json.output.section_1_description_rich || \"\"\n  },\n  {\n    namespace: \"custom\",\n    key: \"section_2_description_rich\",\n    type: \"rich_text_field\",\n    value: $json.output.section_2_description_rich || \"\"\n  },\n  {\n    namespace: \"custom\",\n    key: \"section_1_image\",\n    type: \"file_reference\",\n    value: \"\"\n  },\n  {\n    namespace: \"custom\",\n    key: \"section_2_image\",\n    type: \"file_reference\",\n    value: \"\"\n  }\n]\n}}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -576,
+        1312
+      ],
+      "id": "fc87636b-08d3-4922-8a68-2374b60223a0",
+      "name": "Update a row3",
+      "credentials": {
+        "supabaseApi": {
+          "id": "Mo2PVhNua3Os6151",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# sp_product_post_to_shopify\n",
+        "height": 640,
+        "width": 1344
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -624,
+        1568
+      ],
+      "typeVersion": 1,
+      "id": "f2a01ff5-e769-4cbf-9292-8f13e15186fe",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "content": "# sp_add_product\n",
+        "height": 304,
+        "width": 848
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -624,
+        -80
+      ],
+      "typeVersion": 1,
+      "id": "2ec9eb74-759f-4fe9-a664-7af16530cc79",
+      "name": "Sticky Note10"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sp_add_product",
+        "authentication": "basicAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -576,
+        32
+      ],
+      "id": "6fe40cd5-4cdf-4570-8e9c-4c26a2377836",
+      "name": "Webhook9",
+      "webhookId": "083c3a3b-a0cc-4a24-80af-92d050bfd8a6",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "4C7ai10q7tTpKD6R",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableId": "products"
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        32
+      ],
+      "id": "b0b315f9-b75c-434f-ab65-0f3af7e52a39",
+      "name": "Create a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "Mo2PVhNua3Os6151",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        32,
+        32
+      ],
+      "id": "bb8f22b7-736b-4840-a7d2-9a24bb438f67",
+      "name": "Respond to Webhook9"
+    },
+    {
+      "parameters": {
+        "tableId": "metafields",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "product_id",
+              "fieldValue": "={{ $json.id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        32
+      ],
+      "id": "847cf4aa-773c-461f-be09-85263d3eef84",
+      "name": "Create a row1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "Mo2PVhNua3Os6151",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "mutation",
+        "graphqlMutation": "mutation UpdateVariantPricing($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {\n  productVariantsBulkUpdate(productId: $productId, variants: $variants) {\n    productVariants {\n      id\n      price\n      compareAtPrice\n    }\n    userErrors {\n      field\n      message\n    }\n  }\n}",
+        "graphqlMutationVariables": "={\n  \"productId\": \"{{ $json.shopify_gid }}\",\n  \"variants\": [\n    {\n      \"id\": \"{{ $json.shopify_variant_id }}\",\n      \"price\": \"{{ $json.price }}\",\n      \"compareAtPrice\": \"{{ $json.compare_at_price }}\"\n    }\n  ]\n}"
+      },
+      "type": "n8n-nodes-shopify-graphql.shopifyGraphql",
+      "typeVersion": 1,
+      "position": [
+        288,
+        1664
+      ],
+      "id": "9d6b708a-8f4a-49e0-935b-b5dd9e5203b9",
+      "name": "set price and compare at price",
+      "credentials": {
+        "shopifyOAuth2Api": {
+          "id": "xvHntzJUOYTiDsDY",
+          "name": "Shopify Access Token Opticam"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sp_product_post_to_shopify",
+        "authentication": "basicAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -576,
+        1664
+      ],
+      "id": "f05dc406-3aeb-4a82-9972-763def17038b",
+      "name": "Webhook10",
+      "webhookId": "083c3a3b-a0cc-4a24-80af-92d050bfd8a6",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "4C7ai10q7tTpKD6R",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        544,
+        1936
+      ],
+      "id": "7fd237ab-2c34-4235-b064-427169053818",
+      "name": "Respond to Webhook10"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "products",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "keyValue": "={{ $json.body.product_id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -368,
+        1664
+      ],
+      "id": "aa19c7e4-d50e-42a3-92ce-ce0e8cb3d6c0",
+      "name": "Get a row4",
+      "credentials": {
+        "supabaseApi": {
+          "id": "Mo2PVhNua3Os6151",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "products",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Get a row4').item.json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "shopify_gid",
+              "fieldValue": "={{ $json.data.productSet.product.id }}"
+            },
+            {
+              "fieldId": "shopify_variant_id",
+              "fieldValue": "={{ $json.data.productSet.product.variants.nodes[0].id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        64,
+        1664
+      ],
+      "id": "64738dd1-bb49-4fc9-8710-94021c575aea",
+      "name": "Update a row4",
+      "credentials": {
+        "supabaseApi": {
+          "id": "Mo2PVhNua3Os6151",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# sp_delete_product_link_images\n\n",
+        "height": 304,
+        "width": 848
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1952,
+        256
+      ],
+      "typeVersion": 1,
+      "id": "932a180f-ecae-4c02-a7cf-22e96da8b945",
+      "name": "Sticky Note11"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sp_delete_product_link_images",
+        "authentication": "basicAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        2000,
+        368
+      ],
+      "id": "6e2e07cc-3f06-44fe-b6cd-d9bf001abe40",
+      "name": "Webhook11",
+      "webhookId": "083c3a3b-a0cc-4a24-80af-92d050bfd8a6",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "4C7ai10q7tTpKD6R",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2608,
+        368
+      ],
+      "id": "473b2a5c-ec30-4cc8-a42a-c05c420586b8",
+      "name": "Respond to Webhook11"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "links",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $json.body.link_id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "images",
+              "fieldValue": "={{ $json.body.images }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2208,
+        368
+      ],
+      "id": "69af2125-93f2-43f4-ac32-bf163fd3db31",
+      "name": "Update a row5",
+      "credentials": {
+        "supabaseApi": {
+          "id": "Mo2PVhNua3Os6151",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# sp_product_data_update\n",
+        "height": 304,
+        "width": 848
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -624,
+        624
+      ],
+      "typeVersion": 1,
+      "id": "7c18f88e-83a5-4a3a-990e-46662185e889",
+      "name": "Sticky Note13"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sp_product_data_update",
+        "authentication": "basicAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -576,
+        736
+      ],
+      "id": "58aa5efe-1760-44a0-9cf6-a4e9a2d1ceb4",
+      "name": "Webhook13",
+      "webhookId": "083c3a3b-a0cc-4a24-80af-92d050bfd8a6",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "4C7ai10q7tTpKD6R",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -176,
+        736
+      ],
+      "id": "703d6894-b26a-45f0-acce-fb3f13779efd",
+      "name": "Respond to Webhook12"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "products",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $json.body.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "title",
+              "fieldValue": "={{ $json.body.title }}"
+            },
+            {
+              "fieldId": "description",
+              "fieldValue": "={{ $json.body.description }}"
+            },
+            {
+              "fieldId": "status",
+              "fieldValue": "={{ $json.body.status }}"
+            },
+            {
+              "fieldId": "template_suffix",
+              "fieldValue": "={{ $json.body.template_suffix }}"
+            },
+            {
+              "fieldId": "price",
+              "fieldValue": "={{ $json.body.price }}"
+            },
+            {
+              "fieldId": "compare_at_price",
+              "fieldValue": "={{ $json.body.compare_at_price }}"
+            },
+            {
+              "fieldId": "active",
+              "fieldValue": "={{ $json.body.active }}"
+            },
+            {
+              "fieldId": "images",
+              "fieldValue": "={{ $json.body.images }}"
+            },
+            {
+              "fieldId": "metafields",
+              "fieldValue": "={{ $json.body.metafields }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -384,
+        736
+      ],
+      "id": "126f9aaa-11ee-410e-8200-3a50aa1de083",
+      "name": "Update Product",
+      "credentials": {
+        "supabaseApi": {
+          "id": "Mo2PVhNua3Os6151",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# sp_product_image_upload_to_shopify\n\n",
+        "height": 304,
+        "width": 768
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        800,
+        1568
+      ],
+      "typeVersion": 1,
+      "id": "8f4a7460-14ba-407c-a168-0c5544418274",
+      "name": "Sticky Note15"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sp_product_image_upload_to_shopify",
+        "authentication": "basicAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        864,
+        1696
+      ],
+      "id": "3a4181b0-953f-4f3c-9390-01c277aeef58",
+      "name": "Webhook15",
+      "webhookId": "083c3a3b-a0cc-4a24-80af-92d050bfd8a6",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "4C7ai10q7tTpKD6R",
+          "name": "Unnamed credential"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "mutation",
+        "graphqlMutation": "mutation FileCreate($files: [FileCreateInput!]!) {\n  fileCreate(files: $files) {\n    files {\n      id\n      alt\n      createdAt\n      ... on MediaImage {\n        image {\n          url\n        }\n      }\n    }\n    userErrors {\n      field\n      message\n    }\n  }\n}\n",
+        "graphqlMutationVariables": "={\n  \"files\": [\n    {\n      \"alt\": \"My image alt text\",\n      \"contentType\": \"IMAGE\",\n      \"originalSource\": \"{{ $json.body.image.original_image_url }}\"\n    }\n  ]\n}\n "
+      },
+      "type": "n8n-nodes-shopify-graphql.shopifyGraphql",
+      "typeVersion": 1,
+      "position": [
+        1072,
+        1696
+      ],
+      "id": "dcc34434-11f9-4b78-abdd-c793b22dc54a",
+      "name": "Mutation",
+      "credentials": {
+        "shopifyOAuth2Api": {
+          "id": "xvHntzJUOYTiDsDY",
+          "name": "Shopify Access Token Opticam"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"shopify_img_gid\": \"{{ $json.data.fileCreate.files[0].id }}\"\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1344,
+        1696
+      ],
+      "id": "05ff771f-559a-4de2-8b8f-63676b160f8a",
+      "name": "Respond to Webhook14"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "mutation",
+        "graphqlMutation": "mutation ProductSetWithExistingFiles($input: ProductSetInput!, $synchronous: Boolean!) {\n  productSet(input: $input, synchronous: $synchronous) {\n    product {\n      id\n      title\n      descriptionHtml\n      status\n      templateSuffix\n      variants(first: 1) {\n        nodes {\n          id\n          price\n          compareAtPrice\n        }\n      }\n      media(first: 30) {\n        nodes {\n          id\n          alt\n          mediaContentType\n        }\n      }\n    }\n    productSetOperation {\n      id\n      status\n      userErrors {\n        code\n        field\n        message\n      }\n    }\n    userErrors {\n      code\n      field\n      message\n    }\n  }\n}",
+        "graphqlMutationVariables": "={\n  \"synchronous\": true,\n  \"input\": {\n    \"title\": \"{{ $json.title }}\",\n    \"descriptionHtml\": \"{{ $json.description }}\",\n    \"status\": \"{{ $json.status }}\",\n    \"templateSuffix\": \"{{ $json.template_suffix }}\",\n    \"files\": {{ JSON.stringify(\n      ($json.images || [])\n        .filter(img => img && img.shopify_gid)\n        .map(img => ({\n          id: img.shopify_gid,\n          alt: img.alt || 'product image'\n        })),\n      null,\n      2\n    ) }}\n  }\n}"
+      },
+      "type": "n8n-nodes-shopify-graphql.shopifyGraphql",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        1664
+      ],
+      "id": "394d5cc6-7fb8-4ded-a333-d89349542e42",
+      "name": "Create Product",
+      "credentials": {
+        "shopifyOAuth2Api": {
+          "id": "xvHntzJUOYTiDsDY",
+          "name": "Shopify Access Token Opticam"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "mutation",
+        "graphqlMutation": "mutation UpdateProductMetafield($metafields: [MetafieldsSetInput!]!) {\n  metafieldsSet(metafields: $metafields) {\n    metafields {\n      id\n      key\n      value\n    }\n    userErrors {\n      field\n      message\n    }\n  }\n}",
+        "graphqlMutationVariables": "={{ JSON.stringify($json.variables) }}"
+      },
+      "type": "n8n-nodes-shopify-graphql.shopifyGraphql",
+      "typeVersion": 1,
+      "position": [
+        -256,
+        1936
+      ],
+      "id": "bc05235f-2830-43f1-b537-7232e10d2cef",
+      "name": "Set Metafields1",
+      "credentials": {
+        "shopifyOAuth2Api": {
+          "id": "xvHntzJUOYTiDsDY",
+          "name": "Shopify Access Token Opticam"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rawOwnerId = $('Create Product').first().json.data.productSet.product.id;\nconst rawMetafields = $('Get a row4').first().json.metafields;\n\nfunction normalizeProductGid(raw) {\n  if (!raw) {\n    throw new Error('Missing product id');\n  }\n\n  const value = String(raw).trim();\n\n  if (value.startsWith('gid://shopify/Product/')) {\n    return value;\n  }\n\n  return `gid://shopify/Product/${value}`;\n}\n\nfunction parseMetafields(raw) {\n  if (Array.isArray(raw)) {\n    return raw;\n  }\n\n  if (typeof raw === 'string') {\n    const parsed = JSON.parse(raw);\n\n    if (!Array.isArray(parsed)) {\n      throw new Error('Metafields is not a valid JSON array');\n    }\n\n    return parsed;\n  }\n\n  throw new Error('Invalid metafields format');\n}\n\nfunction stripHtml(value) {\n  if (value == null) return '';\n  return String(value)\n    .replace(/<h[1-6][^>]*>/gi, '')\n    .replace(/<\\/h[1-6]>/gi, '\\n')\n    .replace(/<p[^>]*>/gi, '')\n    .replace(/<\\/p>/gi, '\\n')\n    .replace(/<br\\s*\\/?>/gi, '\\n')\n    .replace(/<li[^>]*>/gi, '• ')\n    .replace(/<\\/li>/gi, '\\n')\n    .replace(/<ul[^>]*>/gi, '')\n    .replace(/<\\/ul>/gi, '\\n')\n    .replace(/<ol[^>]*>/gi, '')\n    .replace(/<\\/ol>/gi, '\\n')\n    .replace(/<[^>]+>/g, '')\n    .replace(/&nbsp;/g, ' ')\n    .replace(/&amp;/g, '&')\n    .replace(/&quot;/g, '\"')\n    .replace(/&#39;/g, \"'\")\n    .replace(/\\n{3,}/g, '\\n\\n')\n    .trim();\n}\n\nfunction htmlToShopifyRichText(value) {\n  const text = stripHtml(value);\n\n  const paragraphs = text\n    .split(/\\n\\n+/)\n    .map(p => p.trim())\n    .filter(Boolean)\n    .map(p => ({\n      type: 'paragraph',\n      children: [\n        {\n          type: 'text',\n          value: p,\n        },\n      ],\n    }));\n\n  return JSON.stringify({\n    type: 'root',\n    children: paragraphs.length\n      ? paragraphs\n      : [\n          {\n            type: 'paragraph',\n            children: [\n              {\n                type: 'text',\n                value: '',\n              },\n            ],\n          },\n        ],\n  });\n}\n\nfunction formatMetafieldValue(key, type, value) {\n  if (key === 'tabel_specificatii_tehnice_multiline') {\n    return value == null ? '' : String(value).trim();\n  }\n\n  if (type === 'rich_text_field') {\n    return htmlToShopifyRichText(value);\n  }\n\n  if (type === 'single_line_text_field') {\n    return stripHtml(value).replace(/\\n+/g, ' ').trim().slice(0, 255);\n  }\n\n  if (type === 'multi_line_text_field') {\n    return stripHtml(value);\n  }\n\n  if (type === 'file_reference') {\n    return value == null ? '' : String(value).trim();\n  }\n\n  return value ?? '';\n}\n\nconst ownerId = normalizeProductGid(rawOwnerId);\n\nconst metafields = parseMetafields(rawMetafields).map((item) => ({\n  ownerId,\n  namespace: item.namespace || 'custom',\n  key: item.key,\n  type: item.type,\n  value: formatMetafieldValue(item.key, item.type, item.value),\n}));\n\nreturn [\n  {\n    json: {\n      variables: {\n        metafields,\n      },\n    },\n  },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -544,
+        1936
+      ],
+      "id": "cf6591aa-ffc2-4355-90c0-75f6d965efae",
+      "name": "Code in JavaScript5"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get Products",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Products": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Get Products1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Products1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook2": {
+      "main": [
+        [
+          {
+            "node": "Get Products2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Products2": {
+      "main": [
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Get Products3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook3": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Products3": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook4": {
+      "main": [
+        [
+          {
+            "node": "Get Products4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Products4": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Update a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Json Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Data Extractor",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Extractor": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Data Extractor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a row": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a row": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook5": {
+      "main": [
+        [
+          {
+            "node": "Get a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Data Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many rows": {
+      "main": [
+        [
+          {
+            "node": "Aggregate2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Update a row3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook8": {
+      "main": [
+        [
+          {
+            "node": "Get a row3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a row3": {
+      "main": [
+        [
+          {
+            "node": "Get many rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate2": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a row3": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook9": {
+      "main": [
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row": {
+      "main": [
+        [
+          {
+            "node": "Create a row1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "set price and compare at price": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook10": {
+      "main": [
+        [
+          {
+            "node": "Get a row4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a row4": {
+      "main": [
+        [
+          {
+            "node": "Create Product",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a row4": {
+      "main": [
+        [
+          {
+            "node": "set price and compare at price",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook11": {
+      "main": [
+        [
+          {
+            "node": "Update a row5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a row5": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook11",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook13": {
+      "main": [
+        [
+          {
+            "node": "Update Product",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Product": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook12",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook15": {
+      "main": [
+        [
+          {
+            "node": "Mutation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mutation": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook14",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Product": {
+      "main": [
+        [
+          {
+            "node": "Update a row4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Metafields1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook10",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript5": {
+      "main": [
+        [
+          {
+            "node": "Set Metafields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3bc22dee87345d4fd7b7c4fb8dd9ad70b8ed3f11fd154452b755ea49b9a98908"
+  }
+}

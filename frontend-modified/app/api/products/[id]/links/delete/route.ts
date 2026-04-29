@@ -3,8 +3,8 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-//   const baseUrl = process.env.WEBHOOK_URL_DEBUG;
   const baseUrl = process.env.WEBHOOK_URL;
+  // const baseUrl = process.env.WEBHOOK_URL_DEBUG;
   const username = process.env.N8N_WEBHOOK_USERNAME;
   const password = process.env.N8N_WEBHOOK_PASSWORD;
 
